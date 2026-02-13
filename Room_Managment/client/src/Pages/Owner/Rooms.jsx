@@ -1,0 +1,1175 @@
+import React, { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
+import 'material-icons/iconfont/material-icons.css';
+
+const OwnerRooms = () => {
+  const [activeTab, setActiveTab] = useState('list');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [user, setUser] = useState({});
+  const [rooms, setRooms] = useState([]);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [roomReviews, setRoomReviews] = useState({});
+  const [loadingReviews, setLoadingReviews] = useState({});
+  
+  // Form states
+  const [createForm, setCreateForm] = useState({
+    title: '',
+    description: '',
+    noOfBeds: 1,
+    roomSize: 0,
+    maxOccupancy: 1,
+    pricePerDay: 0,
+    timeForCheckout: 12,
+    location: {
+      lat: 40.7128,
+      lng: -74.0060
+    }
+  });
+
+  // Image upload state for create room
+  const [roomImages, setRoomImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+
+  // Separate image upload for existing rooms
+  const [imageUpload, setImageUpload] = useState({
+    roomId: '',
+    image: null,
+    preview: null
+  });
+
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+  // Get auth headers with token
+  const getAuthHeaders = () => {
+    const token = Cookies.get('token');
+    return {
+      'Authorization': `Bearer ${token}`
+    };
+  };
+
+  // Load user data on mount
+  useEffect(() => {
+    const userData = Cookies.get('user');
+    if (userData) {
+      const parsedUser = JSON.parse(userData);
+      setUser(parsedUser);
+    }
+  }, []);
+
+  // Fetch rooms when user is loaded
+  useEffect(() => {
+    if (user.id) {
+      fetchOwnerRooms();
+    }
+  }, [user]);
+
+  // GET OWNER ROOMS - /api/room/
+  const fetchOwnerRooms = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${BASE_URL}/room/`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (response.ok) {
+        // Filter rooms by owner ID to show only current owner's rooms
+        const ownerRooms = data.filter(room => room.ownerId === user.id);
+        setRooms(ownerRooms);
+        
+        // Fetch reviews for each room
+        ownerRooms.forEach(room => {
+          fetchRoomReviews(room._id);
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // GET ROOM REVIEWS - /api/review/reviews/room/:roomId
+  const fetchRoomReviews = async (roomId) => {
+    try {
+      setLoadingReviews(prev => ({ ...prev, [roomId]: true }));
+      const response = await fetch(`${BASE_URL}/review/reviews/room/${roomId}`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setRoomReviews(prev => ({ ...prev, [roomId]: data.reviews || [] }));
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+      setRoomReviews(prev => ({ ...prev, [roomId]: [] }));
+    } finally {
+      setLoadingReviews(prev => ({ ...prev, [roomId]: false }));
+    }
+  };
+
+  // GET REVIEW BY ID - /api/review/reviews/:reviewId
+  const fetchReviewById = async (reviewId) => {
+    try {
+      const response = await fetch(`${BASE_URL}/review/reviews/${reviewId}`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (response.ok) {
+        return data.review;
+      }
+    } catch (error) {
+      console.error('Error fetching review:', error);
+    }
+    return null;
+  };
+
+  // Upload multiple images function
+  const uploadRoomImages = async (roomId, images) => {
+    const uploadPromises = images.map(async (image) => {
+      const formData = new FormData();
+      formData.append('image', image);
+      formData.append('roomId', roomId);
+
+      try {
+        const response = await fetch(`${BASE_URL}/room/upload-image`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          credentials: 'include',
+          body: formData
+        });
+        return await response.json();
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        return null;
+      }
+    });
+
+    const results = await Promise.all(uploadPromises);
+    return results.filter(result => result && result.ok !== false);
+  };
+
+  // 1. CREATE ROOM WITH IMAGES - POST /api/room/ + POST /api/room/upload-image
+  const createRoom = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      // First create the room
+      const roomResponse = await fetch(`${BASE_URL}/room/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          ...createForm,
+          ownerId: user.id
+        })
+      });
+
+      const roomData = await roomResponse.json();
+
+      if (roomResponse.ok) {
+        const roomId = roomData._id || roomData.room?._id;
+        
+        // Then upload images if any
+        if (roomImages.length > 0 && roomId) {
+          const uploadResults = await uploadRoomImages(roomId, roomImages);
+          if (uploadResults.length > 0) {
+            setMessage({ 
+              type: 'success', 
+              text: `✅ Room created with ${uploadResults.length} image(s) uploaded!` 
+            });
+          } else {
+            setMessage({ 
+              type: 'success', 
+              text: '✅ Room created successfully! (No images uploaded)' 
+            });
+          }
+        } else {
+          setMessage({ 
+            type: 'success', 
+            text: '✅ Room created successfully!' 
+          });
+        }
+
+        // Reset form
+        setCreateForm({
+          title: '',
+          description: '',
+          noOfBeds: 1,
+          roomSize: 0,
+          maxOccupancy: 1,
+          pricePerDay: 0,
+          timeForCheckout: 12,
+          location: {
+            lat: 40.7128,
+            lng: -74.0060
+          }
+        });
+        setRoomImages([]);
+        setImagePreviews([]);
+        
+        fetchOwnerRooms();
+        setActiveTab('list');
+      } else {
+        setMessage({ type: 'error', text: roomData.message || 'Failed to create room' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Something went wrong' });
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    }
+  };
+
+  // Handle multiple image selection
+  const handleImageSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setRoomImages(prev => [...prev, ...files]);
+    
+    // Create previews
+    const newPreviews = files.map(file => URL.createObjectURL(file));
+    setImagePreviews(prev => [...prev, ...newPreviews]);
+  };
+
+  // Remove image from selection
+  const removeImage = (index) => {
+    setRoomImages(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => {
+      // Revoke object URL to avoid memory leaks
+      URL.revokeObjectURL(prev[index]);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  // 2. UPLOAD SINGLE IMAGE - POST /api/room/upload-image (for existing rooms)
+  const uploadImage = async (e) => {
+    e.preventDefault();
+    if (!imageUpload.roomId || !imageUpload.image) {
+      setMessage({ type: 'error', text: 'Please select a room and image' });
+      return;
+    }
+
+    setLoading(true);
+    setMessage({ type: '', text: '' });
+
+    const formData = new FormData();
+    formData.append('image', imageUpload.image);
+    formData.append('roomId', imageUpload.roomId);
+
+    try {
+      const response = await fetch(`${BASE_URL}/room/upload-image`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({ type: 'success', text: '✅ Image uploaded successfully!' });
+        setImageUpload({ roomId: '', image: null, preview: null });
+        fetchOwnerRooms();
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Failed to upload image' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Error uploading image' });
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    }
+  };
+
+  // 3. GET ROOM BY ID - /api/room/:id
+  const fetchRoomById = async (roomId) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${BASE_URL}/room/${roomId}`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setSelectedRoom(data);
+        // Fetch reviews for the selected room
+        await fetchRoomReviews(roomId);
+      }
+    } catch (error) {
+      console.error('Error fetching room:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 5. DELETE ROOM - DELETE /api/room/:id
+  const deleteRoom = async (roomId) => {
+    if (!window.confirm('Are you sure you want to delete this room?')) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch(`${BASE_URL}/room/${roomId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({ type: 'success', text: '✅ Room deleted successfully' });
+        fetchOwnerRooms();
+        if (selectedRoom?._id === roomId) {
+          setSelectedRoom(null);
+        }
+        // Clear reviews for deleted room
+        setRoomReviews(prev => {
+          const newReviews = { ...prev };
+          delete newReviews[roomId];
+          return newReviews;
+        });
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Failed to delete room' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Error deleting room' });
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    }
+  };
+
+  // 6. TOGGLE AVAILABILITY - PUT /api/room/:id/availability
+  const toggleAvailability = async (roomId, currentStatus) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${BASE_URL}/room/${roomId}/availability`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({ 
+          type: 'success', 
+          text: `✅ Room marked as ${!currentStatus ? 'available' : 'unavailable'}` 
+        });
+        fetchOwnerRooms();
+        if (selectedRoom?._id === roomId) {
+          setSelectedRoom({ ...selectedRoom, isAvailable: !currentStatus });
+        }
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Failed to update availability' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Error updating availability' });
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    }
+  };
+
+  // 7. SEARCH ROOMS - POST /api/room/search
+  const searchRooms = async () => {
+    if (!searchQuery.trim()) {
+      setMessage({ type: 'error', text: 'Please enter a search query' });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setIsSearching(true);
+      const response = await fetch(`${BASE_URL}/room/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        credentials: 'include',
+        body: JSON.stringify({ searchQuery })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSearchResults(data.rooms || []);
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Search failed' });
+      }
+    } catch (error) {
+      console.error('Error searching rooms:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateInputChange = (e) => {
+    const { name, value } = e.target;
+    if (name.startsWith('location.')) {
+      const locationField = name.split('.')[1];
+      setCreateForm(prev => ({
+        ...prev,
+        location: {
+          ...prev.location,
+          [locationField]: parseFloat(value) || 0
+        }
+      }));
+    } else {
+      setCreateForm(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageUpload({
+        ...imageUpload,
+        image: file,
+        preview: URL.createObjectURL(file)
+      });
+    }
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount || 0);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-800">My Rooms</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            You have <span className="font-semibold text-blue-600">{rooms.length}</span> rooms listed
+          </p>
+        </div>
+        <button
+          onClick={() => setActiveTab('create')}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-md"
+        >
+          <span className="material-icons text-sm">add</span>
+          Add New Room
+        </button>
+      </div>
+
+      {/* Message */}
+      {message.text && (
+        <div className={`mb-6 p-4 rounded-lg text-sm flex items-center gap-3 ${
+          message.type === 'success' 
+            ? 'bg-green-50 text-green-800 border border-green-200' 
+            : 'bg-red-50 text-red-800 border border-red-200'
+        }`}>
+          <span className={`material-icons ${message.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+            {message.type === 'success' ? 'check_circle' : 'error'}
+          </span>
+          <span className="flex-1">{message.text}</span>
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div className="border-b border-slate-200 mb-6 overflow-x-auto">
+        <nav className="flex gap-6 min-w-max">
+          <button
+            onClick={() => setActiveTab('list')}
+            className={`pb-3 px-1 text-sm font-medium transition-colors ${
+              activeTab === 'list'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            My Rooms List ({rooms.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('create')}
+            className={`pb-3 px-1 text-sm font-medium transition-colors ${
+              activeTab === 'create'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Create Room
+          </button>
+          <button
+            onClick={() => setActiveTab('upload')}
+            className={`pb-3 px-1 text-sm font-medium transition-colors ${
+              activeTab === 'upload'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Upload Image
+          </button>
+          <button
+            onClick={() => setActiveTab('search')}
+            className={`pb-3 px-1 text-sm font-medium transition-colors ${
+              activeTab === 'search'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Search Rooms
+          </button>
+        </nav>
+      </div>
+
+      {/* MY ROOMS LIST TAB - WITH REAL REVIEWS */}
+      {activeTab === 'list' && (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-slate-800">My Rooms</h2>
+            <button
+              onClick={fetchOwnerRooms}
+              className="px-3 py-1.5 text-sm bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors flex items-center gap-1"
+            >
+              <span className="material-icons text-sm">refresh</span>
+              Refresh
+            </button>
+          </div>
+          
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            </div>
+          ) : rooms.length === 0 ? (
+            <div className="text-center py-12 bg-slate-50 rounded-lg border border-slate-200">
+              <span className="material-icons text-5xl text-slate-300 mb-4">meeting_room</span>
+              <p className="text-slate-500 text-lg">No rooms found</p>
+              <p className="text-slate-400 text-sm mt-1">You haven't created any rooms yet.</p>
+              <button
+                onClick={() => setActiveTab('create')}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors"
+              >
+                Create Your First Room
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {rooms.map((room) => {
+                const reviews = roomReviews[room._id] || [];
+                const averageRating = reviews.length > 0 
+                  ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
+                  : 0;
+                const loadingReview = loadingReviews[room._id];
+                
+                return (
+                  <div key={room._id} className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="h-48 bg-slate-100 relative">
+                      {room.images && room.images.length > 0 ? (
+                        <img 
+                          src={room.images[0]} 
+                          alt={room.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-slate-200">
+                          <span className="material-icons text-4xl text-slate-400">image</span>
+                        </div>
+                      )}
+                      <div className="absolute top-2 right-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          room.isAvailable 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-amber-100 text-amber-700'
+                        }`}>
+                          {room.isAvailable ? 'Available' : 'Booked'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-semibold text-slate-800 mb-1">{room.title}</h3>
+                      <p className="text-sm text-slate-500 mb-2 line-clamp-2">{room.description}</p>
+                      
+                      {/* Rating Stars - Real Data */}
+                      <div className="flex items-center gap-1 mb-2">
+                        {loadingReview ? (
+                          <div className="flex items-center gap-1">
+                            <div className="w-16 h-4 bg-slate-200 animate-pulse rounded"></div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <span key={star} className={`material-icons text-sm ${
+                                  star <= averageRating ? 'text-amber-400' : 'text-slate-300'
+                                }`}>
+                                  star
+                                </span>
+                              ))}
+                            </div>
+                            <span className="text-xs text-slate-500">
+                              ({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})
+                            </span>
+                            {averageRating > 0 && (
+                              <span className="text-xs font-medium text-amber-600">
+                                {averageRating}
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-lg font-bold text-blue-600">{formatCurrency(room.pricePerDay)}</span>
+                        <span className="text-xs text-slate-500">per night</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-slate-500 mb-4">
+                        <span className="flex items-center gap-1">
+                          <span className="material-icons text-sm">bed</span>
+                          {room.noOfBeds} bed
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="material-icons text-sm">straighten</span>
+                          {room.roomSize} m²
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="material-icons text-sm">people</span>
+                          {room.maxOccupancy}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => fetchRoomById(room._id)}
+                          className="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors"
+                        >
+                          View Details
+                        </button>
+                        <button
+                          onClick={() => toggleAvailability(room._id, room.isAvailable)}
+                          className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            room.isAvailable
+                              ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                              : 'bg-green-100 text-green-700 hover:bg-green-200'
+                          }`}
+                        >
+                          {room.isAvailable ? 'Mark Unavailable' : 'Mark Available'}
+                        </button>
+                        <button
+                          onClick={() => deleteRoom(room._id)}
+                          className="px-3 py-1.5 bg-rose-100 text-rose-600 rounded-lg text-xs font-medium hover:bg-rose-200 transition-colors"
+                        >
+                          <span className="material-icons text-sm">delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* CREATE ROOM TAB - WITH IMAGE UPLOAD */}
+      {activeTab === 'create' && (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-slate-800 mb-4">Create New Room</h2>
+          
+          <form onSubmit={createRoom} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={createForm.title}
+                  onChange={handleCreateInputChange}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Price Per Day ($) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  name="pricePerDay"
+                  value={createForm.pricePerDay}
+                  onChange={handleCreateInputChange}
+                  min="0"
+                  step="0.01"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Description <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                name="description"
+                value={createForm.description}
+                onChange={handleCreateInputChange}
+                rows="3"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Number of Beds
+                </label>
+                <input
+                  type="number"
+                  name="noOfBeds"
+                  value={createForm.noOfBeds}
+                  onChange={handleCreateInputChange}
+                  min="1"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Room Size (m²)
+                </label>
+                <input
+                  type="number"
+                  name="roomSize"
+                  value={createForm.roomSize}
+                  onChange={handleCreateInputChange}
+                  min="0"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Max Occupancy
+                </label>
+                <input
+                  type="number"
+                  name="maxOccupancy"
+                  value={createForm.maxOccupancy}
+                  onChange={handleCreateInputChange}
+                  min="1"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Checkout Time (hour)
+                </label>
+                <input
+                  type="number"
+                  name="timeForCheckout"
+                  value={createForm.timeForCheckout}
+                  onChange={handleCreateInputChange}
+                  min="0"
+                  max="23"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Location Coordinates
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    name="location.lat"
+                    value={createForm.location.lat}
+                    onChange={handleCreateInputChange}
+                    placeholder="Latitude"
+                    step="0.0001"
+                    className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+                  />
+                  <input
+                    type="number"
+                    name="location.lng"
+                    value={createForm.location.lng}
+                    onChange={handleCreateInputChange}
+                    placeholder="Longitude"
+                    step="0.0001"
+                    className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Image Upload Section */}
+            <div className="border-t border-slate-200 pt-4">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Upload Room Images (Optional - You can upload multiple)
+              </label>
+              <div className="flex items-center gap-4">
+                <label className="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                  <span className="flex items-center gap-2">
+                    <span className="material-icons text-sm">add_photo_alternate</span>
+                    Select Images
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageSelect}
+                    className="hidden"
+                  />
+                </label>
+                <span className="text-xs text-slate-500">
+                  {roomImages.length} image(s) selected
+                </span>
+              </div>
+
+              {/* Image Previews */}
+              {imagePreviews.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-sm text-slate-700 mb-2">Image Previews:</p>
+                  <div className="flex flex-wrap gap-4">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="relative">
+                        <img 
+                          src={preview} 
+                          alt={`Preview ${index + 1}`} 
+                          className="w-24 h-24 object-cover rounded-lg border border-slate-200"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                        >
+                          <span className="material-icons text-xs">close</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-6 border-t border-slate-100">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Creating Room...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-icons">add</span>
+                    CREATE ROOM {roomImages.length > 0 ? `WITH ${roomImages.length} IMAGE(S)` : ''}
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* UPLOAD IMAGE TAB (for existing rooms) */}
+      {activeTab === 'upload' && (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-slate-800 mb-4">Upload Additional Images</h2>
+          
+          <form onSubmit={uploadImage} className="max-w-md space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Select Room
+              </label>
+              <select
+                value={imageUpload.roomId}
+                onChange={(e) => setImageUpload({ ...imageUpload, roomId: e.target.value })}
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+                required
+              >
+                <option value="">Choose a room...</option>
+                {rooms.map((room) => (
+                  <option key={room._id} value={room._id}>
+                    {room.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Choose Image
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                required
+              />
+            </div>
+
+            {imageUpload.preview && (
+              <div className="mt-4">
+                <p className="text-sm text-slate-700 mb-2">Preview:</p>
+                <img 
+                  src={imageUpload.preview} 
+                  alt="Preview" 
+                  className="w-full h-48 object-cover rounded-lg border border-slate-200"
+                />
+              </div>
+            )}
+
+            <div className="pt-4">
+              <button
+                type="submit"
+                disabled={loading || !imageUpload.roomId || !imageUpload.image}
+                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-md"
+              >
+                {loading ? 'Uploading...' : 'Upload Image'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* SEARCH ROOMS TAB */}
+      {activeTab === 'search' && (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-slate-800 mb-4">Search Rooms</h2>
+          
+          <div className="flex gap-4 mb-6">
+            <div className="flex-1 relative">
+              <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+              <input
+                type="text"
+                placeholder="Search by room size, price, etc..."
+                className="w-full pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <button
+              onClick={searchRooms}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors"
+            >
+              Search
+            </button>
+          </div>
+
+          {isSearching && (
+            <div>
+              <h3 className="text-sm font-medium text-slate-700 mb-3">Search Results ({searchResults.length})</h3>
+              {searchResults.length === 0 ? (
+                <p className="text-slate-500 text-sm">No rooms found matching your search.</p>
+              ) : (
+                <div className="space-y-3">
+                  {searchResults.map((room) => (
+                    <div key={room._id} className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-slate-800">{room.title}</h4>
+                          <p className="text-xs text-slate-500">{room.description}</p>
+                          <div className="flex gap-4 mt-2 text-xs text-slate-500">
+                            <span>Size: {room.roomSize} m²</span>
+                            <span>Beds: {room.noOfBeds}</span>
+                            <span>Price: {formatCurrency(room.pricePerDay)}/night</span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => fetchRoomById(room._id)}
+                          className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                          View
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ROOM DETAILS MODAL - WITH REAL REVIEWS */}
+      {selectedRoom && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white">
+              <h2 className="text-xl font-bold text-slate-800">Room Details</h2>
+              <button
+                onClick={() => setSelectedRoom(null)}
+                className="p-2 hover:bg-slate-100 rounded-full"
+              >
+                <span className="material-icons">close</span>
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {/* Image Gallery */}
+              {selectedRoom.images && selectedRoom.images.length > 0 && (
+                <div className="mb-6">
+                  <div className="grid grid-cols-2 gap-2">
+                    {selectedRoom.images.map((img, index) => (
+                      <img 
+                        key={index}
+                        src={img} 
+                        alt={`${selectedRoom.title} ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-800">{selectedRoom.title}</h3>
+                  <p className="text-slate-600 mt-1">{selectedRoom.description}</p>
+                </div>
+
+                {/* Reviews Section in Modal - Real Data */}
+                <div className="bg-slate-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                    <span className="material-icons text-amber-400">star</span>
+                    Guest Reviews ({roomReviews[selectedRoom._id]?.length || 0})
+                  </h4>
+                  {loadingReviews[selectedRoom._id] ? (
+                    <div className="space-y-2">
+                      <div className="h-16 bg-slate-200 animate-pulse rounded"></div>
+                      <div className="h-16 bg-slate-200 animate-pulse rounded"></div>
+                    </div>
+                  ) : roomReviews[selectedRoom._id]?.length > 0 ? (
+                    <div className="space-y-3">
+                      {roomReviews[selectedRoom._id].map((review) => (
+                        <div key={review._id} className="border-b border-slate-200 last:border-0 pb-3 last:pb-0">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-slate-800">
+                              {review.userId?.name || 'Guest'}
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              {formatDate(review.createdAt)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1 mt-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <span key={star} className={`material-icons text-xs ${
+                                star <= review.rating ? 'text-amber-400' : 'text-slate-300'
+                              }`}>
+                                star
+                              </span>
+                            ))}
+                          </div>
+                          <p className="text-xs text-slate-600 mt-1">{review.comment}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500 text-center py-4">
+                      No reviews yet for this room.
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg">
+                  <div>
+                    <p className="text-xs text-slate-500">Price per night</p>
+                    <p className="text-xl font-bold text-blue-600">{formatCurrency(selectedRoom.pricePerDay)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500">Status</p>
+                    <span className={`inline-block mt-1 px-2 py-1 rounded-full text-xs font-semibold ${
+                      selectedRoom.isAvailable 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-amber-100 text-amber-700'
+                    }`}>
+                      {selectedRoom.isAvailable ? 'Available' : 'Booked'}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500">Beds</p>
+                    <p className="font-medium">{selectedRoom.noOfBeds}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500">Room Size</p>
+                    <p className="font-medium">{selectedRoom.roomSize} m²</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500">Max Occupancy</p>
+                    <p className="font-medium">{selectedRoom.maxOccupancy} guests</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500">Checkout Time</p>
+                    <p className="font-medium">{selectedRoom.timeForCheckout}:00</p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 p-4 rounded-lg">
+                  <p className="text-xs text-slate-500 mb-2">Location</p>
+                  <p className="text-sm">Lat: {selectedRoom.location?.lat}, Lng: {selectedRoom.location?.lng}</p>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => toggleAvailability(selectedRoom._id, selectedRoom.isAvailable)}
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      selectedRoom.isAvailable
+                        ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                        : 'bg-green-100 text-green-700 hover:bg-green-200'
+                    }`}
+                  >
+                    {selectedRoom.isAvailable ? 'Mark Unavailable' : 'Mark Available'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActiveTab('upload');
+                      setImageUpload({ ...imageUpload, roomId: selectedRoom._id });
+                      setSelectedRoom(null);
+                    }}
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+                  >
+                    Upload Image
+                  </button>
+                  <button
+                    onClick={() => deleteRoom(selectedRoom._id)}
+                    className="px-4 py-2 bg-rose-100 text-rose-600 rounded-lg text-sm font-medium hover:bg-rose-200"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default OwnerRooms;
