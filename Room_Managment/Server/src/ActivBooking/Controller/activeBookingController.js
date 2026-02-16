@@ -186,13 +186,13 @@ exports.activeBookingHistory = async (req, res) => {
     try {
         const { userId } = req.params;  // Get userId or ownerId from params
 
-        // Find active bookings for the given userId or ownerId
-        const activeBookings = await ActiveBooking.find({ ownerId: userId})
-        //     $or: [
-        //         { userId },  // Match bookings where userId matches
-        //         { ownerId: userId }  // Match bookings where ownerId matches
-        //     ]
-        // });
+        // Find active bookings where either userId or ownerId matches the provided userId
+        const activeBookings = await ActiveBooking.find({
+            $or: [
+                { userId },  // Match bookings where userId matches
+                { ownerId: userId }  // Match bookings where ownerId matches
+            ]
+        });
 
         if (!activeBookings || activeBookings.length === 0) {
             return res.status(404).json({ message: 'No active bookings found' });
@@ -207,6 +207,7 @@ exports.activeBookingHistory = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 exports.getActiveBookingHistory = async (req, res) => {
     try {

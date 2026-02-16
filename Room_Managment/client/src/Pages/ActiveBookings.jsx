@@ -142,7 +142,7 @@ const ActiveBookings = () => {
                       </p>
                     </div>
                     <p className="text-xs text-slate-400 mt-1 font-mono">
-                      {booking._id}
+                      {booking.bookingId}
                     </p>
                   </div>
 

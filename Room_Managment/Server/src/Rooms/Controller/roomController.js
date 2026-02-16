@@ -59,16 +59,37 @@ exports.createRoom = async (req, res) => {
 
 
 // Get Room by ID
+// exports.getRoomById = async (req, res) => {
+//     try {
+//         const roomId = req.params.roomId;
+
+//         const room = await Room.findById(roomId);
+//         if (!room) {
+//             return res.status(404).json({ message: 'Room not found' });
+//         }
+
+//         res.status(200).json(room);
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// };
 exports.getRoomById = async (req, res) => {
     try {
         const roomId = req.params.roomId;
+        const userId = req.user.id;  // Assuming you're storing the user ID in the token
 
+        // Find the room
         const room = await Room.findById(roomId);
         if (!room) {
             return res.status(404).json({ message: 'Room not found' });
         }
 
-        res.status(200).json(room);
+        // Find bookings for the room by the current user
+        const bookings = await Booking.find({ room: roomId, user: userId });
+
+        // Return the room along with filtered bookings
+        res.status(200).json({ room, bookings });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error' });
@@ -282,36 +303,36 @@ exports.searchRooms = async (req, res) => {
 
 // Image Upload
 exports.uploadImage = async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+
+        // Upload the image to Cloudinary
+        const uploadResponse = await cloudinary.uploader.upload(req.file.path, {
+            folder: 'room_images', // Specify folder for better organization
+        });
+
+        // Save the image URL to the database and link it to the room
+        const room = await Room.findById(req.body.roomId); // Assuming roomId is sent in the body
+
+        if (!room) {
+            return res.status(404).json({ message: 'Room not found' });
+        }
+
+        // Add the uploaded image URL to the images array of the room
+        room.images.push(uploadResponse.secure_url);
+        await room.save();
+
+        res.status(200).json({
+            message: 'Image uploaded successfully',
+            imageUrl: uploadResponse.secure_url,
+            room,
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
     }
-
-    // Upload the image to Cloudinary
-    const uploadResponse = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'room_images', // Specify folder for better organization
-    });
-
-    // Save the image URL to the database and link it to the room
-    const room = await Room.findById(req.body.roomId); // Assuming roomId is sent in the body
-
-    if (!room) {
-      return res.status(404).json({ message: 'Room not found' });
-    }
-
-    // Add the uploaded image URL to the images array of the room
-    room.images.push(uploadResponse.secure_url);
-    await room.save();
-
-    res.status(200).json({
-      message: 'Image uploaded successfully',
-      imageUrl: uploadResponse.secure_url,
-      room,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
 };
 
 
