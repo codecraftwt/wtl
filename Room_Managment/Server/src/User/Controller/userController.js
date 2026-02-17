@@ -1,6 +1,45 @@
 const User = require('../model/userModel');
-
+const bcrypt = require('bcryptjs');
 // 1. Update User (except role, isVerified, email)
+// exports.updateUser = async (req, res) => {
+//   try {
+//     const userId = req.params.userId;  // Get the user ID from URL parameters
+
+//     // Get the data from the request body
+//     const { name, password, location } = req.body;
+
+//     // Find the user by ID
+//     const user = await User.findById(userId);
+//     if (!user) {
+//       return res.status(404).json({ message: 'User not found' });
+//     }
+
+//     // Update fields except role, isVerified, and email (since those should not be changed)
+//     user.name = name || user.name;
+//     if (password) {
+//       // Hash the new password if provided
+//       user.password = await bcrypt.hash(password, 10);
+//     }
+//     user.location = location || user.location;
+
+//     // Save the updated user
+//     await user.save();
+
+//     // Respond with updated user details
+//     res.status(200).json({
+//       id: user._id,
+//       name: user.name,
+//       email: user.email,
+//       role: user.role,
+//       isVerified: user.isVerified,
+//       isActive: user.isActive,
+//       location: user.location,
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// };
 exports.updateUser = async (req, res) => {
   try {
     const userId = req.params.userId;  // Get the user ID from URL parameters
@@ -14,33 +53,44 @@ exports.updateUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Update fields except role, isVerified, and email (since those should not be changed)
-    user.name = name || user.name;
-    if (password) {
-      // Hash the new password if provided
-      user.password = await bcrypt.hash(password, 10);
-    }
-    user.location = location || user.location;
+    // Update name if provided
+    if (name) user.name = name;
 
-    // Save the updated user
+    // Update password if provided - THIS WILL BE HASHED AUTOMATICALLY by pre-save hook
+    if (password) {
+      user.password = password; // Don't hash here, let pre-save hook handle it
+      console.log('Password will be hashed by pre-save hook');
+    }
+
+    // Update location if provided (merge with existing location)
+    if (location) {
+      user.location = {
+        ...user.location, // Keep existing values
+        ...location       // Override with new values
+      };
+    }
+
+    // Save the updated user - THIS TRIGGERS THE PRE-SAVE HOOK
     await user.save();
 
-    // Respond with updated user details
+    // Respond with updated user details (excluding password)
     res.status(200).json({
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      isVerified: user.isVerified,
-      isActive: user.isActive,
-      location: user.location,
+      message: 'Profile updated successfully',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isVerified: user.isVerified,
+        isActive: user.isActive,
+        location: user.location || {},
+      }
     });
   } catch (err) {
-    console.error(err);
+    console.error('Error updating user:', err);
     res.status(500).json({ message: 'Server error' });
   }
 };
-
 // 2. Get User by ID
 exports.getUserById = async (req, res) => {
   try {
@@ -108,9 +158,6 @@ exports.getUsersByRole = async (req, res) => {
 
 
 
-
-
-
 // 4. Delete User
 exports.deleteUser = async (req, res) => {
   try {
@@ -151,4 +198,5 @@ exports.toggleUserStatus = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
 

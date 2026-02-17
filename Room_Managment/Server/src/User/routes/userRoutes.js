@@ -42,7 +42,7 @@ router.get('/:userId', getUserById);
 router.get('/', isAdmin, getAllUsers);
 
 // 4. Delete user by ID --------------- Allow only for Admin
-router.delete('/:userId', isAdmin, deleteUser);
+router.delete('/:userId',  deleteUser);
 
 // 5. Activate/Deactivate user by ID --------------- Allow for All (admin, owner, user)
 router.put('/status/:userId', toggleUserStatus);
