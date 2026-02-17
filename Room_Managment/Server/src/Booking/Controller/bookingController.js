@@ -455,7 +455,55 @@ exports.getBookingsForRoom = async (req, res) => {
     }
 };
 
+
+// exports.getBookingsForRoom = async (req, res) => {
+//     try {
+//         const { roomId } = req.params;  // Get roomId from params
+//         const { userId, ownerId } = req.query;  // Get userId and ownerId from query params
+
+//         // Build the query object dynamically
+//         const query = { roomId };
+
+//         // Use $or if both userId or ownerId is passed to match either of them
+//         if (userId || ownerId) {
+//             query.$or = [];  // Initialize the $or array
+
+//             if (userId) {
+//                 query.$or.push({ userId });  // Match bookings where userId matches
+//             }
+
+//             if (ownerId) {
+//                 query.$or.push({ ownerId });  // Match bookings where ownerId matches
+//             }
+//         }
+
+//         // Find the first booking based on the dynamic query
+//         const booking = await Booking.findOne(query)
+//             .populate('roomId')
+//             .populate('userId')
+//             .populate('ownerId');
+
+//         if (!booking) {
+//             return res.status(404).json({ message: 'No booking found for this room or user/owner' });
+//         }
+
+//         res.status(200).json({
+//             message: 'Booking fetched successfully',
+//             booking,  // Return the single booking
+//         });
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// };
+
+
+
+
+
+
 //Cancele Booking
+
 exports.cancelBooking = async (req, res) => {
     try {
         const booking = await Booking.findById(req.params.bookingId);

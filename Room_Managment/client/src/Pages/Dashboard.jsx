@@ -472,7 +472,7 @@ const Dashboard = () => {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Min Size (m²)</label>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Min Size (sqft)</label>
             <input
               type="number"
               placeholder="20"
@@ -581,7 +581,7 @@ const Dashboard = () => {
                     </span>
                     <span className="flex items-center gap-1">
                       <span className="material-icons text-sm">straighten</span>
-                      {room.roomSize} m²
+                      {room.roomSize} sqft
                     </span>
                     <span className="flex items-center gap-1">
                       <span className="material-icons text-sm">people</span>
@@ -737,7 +737,7 @@ const Dashboard = () => {
                   </div>
                   <div>
                     <p className="text-xs text-slate-500">Room Size</p>
-                    <p className="font-medium">{selectedRoom.roomSize} m²</p>
+                    <p className="font-medium">{selectedRoom.roomSize}</p>
                   </div>
                   <div>
                     <p className="text-xs text-slate-500">Max Occupancy</p>

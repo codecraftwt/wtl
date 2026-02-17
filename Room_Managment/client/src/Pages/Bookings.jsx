@@ -1263,49 +1263,108 @@ const Bookings = () => {
   };
 
   // 4. GET BOOKINGS BY ROOM ID - GET /api/booking/room/:roomId
-  const fetchBookingsByRoom = async (roomId) => {
+  // const fetchBookingsByRoom = async (roomId) => {
+  //   if (!roomId) return;
+    
+  //   const loadingToast = toast.loading('Loading room bookings...', {
+  //     position: "top-right",
+  //   });
+    
+  //   try {
+  //     setLoading(true);
+  //     const response = await fetch(`${BASE_URL}/booking/room/${roomId}`, {
+  //       method: 'GET',
+  //      headers: {
+  //       'Authorization': `Bearer ${localStorage.getItem('token')}`, // Make sure the token is saved in localStorage/sessionStorage or cookies
+  //       'Content-Type': 'application/json'
+  //   },
+  //       credentials: 'include'
+  //     });
+
+  //     const data = await response.json();
+  //     toast.dismiss(loadingToast);
+
+  //     if (response.ok) {
+  //       setRoomBookings(data.bookings || []);
+  //       if (data.bookings?.length > 0) {
+  //         toast.success(`Found ${data.bookings.length} booking(s) for this room`, {
+  //           position: "top-right",
+  //           autoClose: 3000,
+  //         });
+  //       } else {
+  //         toast.info('No bookings found for this room', {
+  //           position: "top-right",
+  //           autoClose: 3000,
+  //         });
+  //       }
+  //     }
+  //   } catch (error) {
+  //     toast.dismiss(loadingToast);
+  //     console.error('Error fetching room bookings:', error);
+  //     toast.error('Failed to load room bookings', {
+  //       position: "top-right",
+  //       autoClose: 3000,
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+const fetchBookingsByRoom = async (roomId) => {
     if (!roomId) return;
-    
+
     const loadingToast = toast.loading('Loading room bookings...', {
-      position: "top-right",
-    });
-    
-    try {
-      setLoading(true);
-      const response = await fetch(`${BASE_URL}/booking/room/${roomId}`, {
-        method: 'GET',
-        headers: getAuthHeaders(),
-        credentials: 'include'
-      });
-
-      const data = await response.json();
-      toast.dismiss(loadingToast);
-
-      if (response.ok) {
-        setRoomBookings(data.bookings || []);
-        if (data.bookings?.length > 0) {
-          toast.success(`Found ${data.bookings.length} booking(s) for this room`, {
-            position: "top-right",
-            autoClose: 3000,
-          });
-        } else {
-          toast.info('No bookings found for this room', {
-            position: "top-right",
-            autoClose: 3000,
-          });
-        }
-      }
-    } catch (error) {
-      toast.dismiss(loadingToast);
-      console.error('Error fetching room bookings:', error);
-      toast.error('Failed to load room bookings', {
         position: "top-right",
-        autoClose: 3000,
-      });
+    });
+
+    try {
+        setLoading(true);
+        const response = await fetch(`${BASE_URL}/booking/room/${roomId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+        toast.dismiss(loadingToast);
+
+        if (response.ok) {
+            if (Array.isArray(data.bookings)) {
+                // If bookings is an array, use it as it is
+                setRoomBookings(data.bookings || []);
+                if (data.bookings?.length > 0) {
+                    toast.success(`Found ${data.bookings.length} booking(s) for this room`, {
+                        position: "top-right",
+                        autoClose: 3000,
+                    });
+                } else {
+                    toast.info('No bookings found for this room', {
+                        position: "top-right",
+                        autoClose: 3000,
+                    });
+                }
+            } else if (data.booking) {
+                // If a single booking is returned, treat it as an array of one booking
+                setRoomBookings([data.booking]);
+                toast.success('Found 1 booking for this room', {
+                    position: "top-right",
+                    autoClose: 3000,
+                });
+            }
+        }
+    } catch (error) {
+        toast.dismiss(loadingToast);
+        console.error('Error fetching room bookings:', error);
+        toast.error('Failed to load room bookings', {
+            position: "top-right",
+            autoClose: 3000,
+        });
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   // 5. CANCEL BOOKING - PUT /api/booking/cancel/:id
   const cancelBooking = async (bookingId) => {
@@ -1592,7 +1651,7 @@ const Bookings = () => {
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-slate-200 mb-6 overflow-x-auto">
+        {/* <div className="border-b border-slate-200 mb-6 overflow-x-auto">
           <nav className="flex gap-6 min-w-max">
             <button
               onClick={() => setActiveTab('create')}
@@ -1625,7 +1684,47 @@ const Bookings = () => {
               Room Bookings
             </button>
           </nav>
-        </div>
+        </div> */}
+{/* Tabs */}
+<div className="border-b border-slate-200 mb-6 overflow-x-auto">
+  <nav className="flex gap-6 min-w-max">
+    <button
+      onClick={() => setActiveTab('create')}
+      className={`pb-3 px-1 text-sm font-medium transition-colors relative ${
+        activeTab === 'create'
+          ? 'text-blue-600 border-b-2 border-blue-600'
+          : 'text-slate-500 hover:text-slate-700'
+      }`}
+    >
+      Create Booking
+    </button>
+    <button
+      onClick={() => setActiveTab('view')}
+      className={`pb-3 px-1 text-sm font-medium transition-colors relative ${
+        activeTab === 'view'
+          ? 'text-emerald-600 border-b-2 border-emerald-600'
+          : 'text-slate-500 hover:text-slate-700'
+      }`}
+    >
+      View Booking
+    </button>
+    
+    {/* Room Bookings - Only show for owners and admins, completely hidden for users */}
+    {(user.role === 'owner' || user.role === 'admin') && (
+      <button
+        onClick={() => setActiveTab('room')}
+        className={`pb-3 px-1 text-sm font-medium transition-colors ${
+          activeTab === 'room'
+            ? 'text-blue-600 border-b-2 border-blue-600'
+            : 'text-slate-500 hover:text-slate-700'
+        }`}
+      >
+        Room Bookings
+      </button>
+    )}
+  </nav>
+</div>
+
 
         {/* CREATE BOOKING TAB */}
         {activeTab === 'create' && (
