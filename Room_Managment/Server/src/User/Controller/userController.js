@@ -1,6 +1,129 @@
 const User = require('../model/userModel');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const upload = require('../../../utils/multer');
+const cloudinary = require('../../../utils/cloudinaryConfig');
+
+const fs = require('fs'); // Add this for file system operations
+
+exports.updateProfilePhoto = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    
+    console.log('=== PROFILE PHOTO UPLOAD ===');
+    console.log('User ID:', userId);
+    console.log('File received:', req.file ? 'Yes' : 'No');
+
+    // 1. Check if file exists
+    if (!req.file) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'No file uploaded'
+      });
+    }
+
+    console.log('File details:', {
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+      path: req.file.path
+    });
+
+    // 2. Validate file size
+    if (req.file.size > 5 * 1024 * 1024) {
+      // Delete the temporary file
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ 
+        success: false,
+        message: 'File too large. Maximum size is 5MB'
+      });
+    }
+
+    // 3. Check if user exists
+    const existingUser = await User.findById(userId);
+    if (!existingUser) {
+      // Delete the temporary file
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
+    }
+
+    // 4. Upload to Cloudinary using file path
+    console.log('Uploading to Cloudinary...');
+    
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'profile_photos',
+      public_id: `user_${userId}_${Date.now()}`,
+      overwrite: true,
+      resource_type: 'auto',
+      transformation: [
+        { width: 500, height: 500, crop: 'limit' },
+        { quality: 'auto' }
+      ]
+    });
+
+    console.log('Cloudinary upload success:', result.secure_url);
+
+    // 5. Delete the temporary file after upload
+    fs.unlinkSync(req.file.path);
+    console.log('Temporary file deleted');
+
+    // 6. Delete old profile photo from Cloudinary if exists
+    if (existingUser.profilePhoto) {
+      try {
+        const oldPublicId = existingUser.profilePhoto.split('/').pop().split('.')[0];
+        await cloudinary.uploader.destroy(`profile_photos/${oldPublicId}`);
+        console.log('Old profile photo deleted');
+      } catch (deleteError) {
+        console.log('Error deleting old photo:', deleteError.message);
+        // Continue even if delete fails
+      }
+    }
+
+    // 7. Update user in database
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { 
+        profilePhoto: result.secure_url,
+        updatedAt: Date.now()
+      },
+      { new: true }
+    ).select('-password');
+
+    console.log('User updated successfully');
+
+    // 8. Send success response
+    res.status(200).json({ 
+      success: true, 
+      message: 'Profile photo updated successfully',
+      data: {
+        url: result.secure_url,
+        user: updatedUser
+      }
+    });
+
+  } catch (error) {
+    console.error('Error in updateProfilePhoto:', error);
+    
+    // Clean up temporary file if it exists
+    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+        console.log('Temporary file cleaned up after error');
+      } catch (cleanupError) {
+        console.log('Error cleaning up file:', cleanupError.message);
+      }
+    }
+    
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while uploading photo',
+      error: error.message 
+    });
+  }
+};
 
 // 1. Update User (except role, isVerified, email)
 // exports.updateUser = async (req, res) => {

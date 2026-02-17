@@ -22,6 +22,7 @@ const generateToken = (user) => {
             email: user.email,
             role: user.role,
             name: user.name,
+            profilePhoto:user.profilePhoto
         },
         process.env.JWT_SECRET,
         {

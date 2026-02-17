@@ -1,5 +1,15 @@
-// import React, { useState, useEffect } from 'react';
+// import React, { useState, useEffect, useRef } from 'react';
 // import Cookies from 'js-cookie';
+// import L from 'leaflet';
+// import 'leaflet/dist/leaflet.css';
+
+// // Fix for default markers in Leaflet with webpack
+// delete L.Icon.Default.prototype._getIconUrl;
+// L.Icon.Default.mergeOptions({
+//   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+//   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+//   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+// });
 
 // const Profile = () => {
 //   const [isActive, setIsActive] = useState(true);
@@ -9,6 +19,10 @@
 //   const [editMode, setEditMode] = useState(false);
 //   const [formData, setFormData] = useState({});
 //   const [message, setMessage] = useState({ type: '', text: '' });
+  
+//   // Map reference
+//   const mapRef = useRef(null);
+//   const markerRef = useRef(null);
   
 //   // New state for password change
 //   const [passwordData, setPasswordData] = useState({
@@ -26,9 +40,64 @@
 //   const [selectedState, setSelectedState] = useState('');
 //   const [selectedCity, setSelectedCity] = useState('');
 //   const [loadingLocation, setLoadingLocation] = useState(false);
+  
+//   // Map state
+//   const [mapCenter, setMapCenter] = useState([20.5937, 78.9629]); // Default to India
+//   const [mapZoom, setMapZoom] = useState(4);
+//   const [showMap, setShowMap] = useState(false);
 
 //   const BASE_URL = import.meta.env.VITE_BASE_URL;
 //   const LOCATION_API_KEY = 'e42d26fd2748415b32f2dc6a2cb00d9662c4425c4130ce446ceb0b4936001ded';
+
+//   // Initialize map when coordinates are available
+//   useEffect(() => {
+//     if (user.location?.latitude && user.location?.longitude && !editMode) {
+//       setMapCenter([user.location.latitude, user.location.longitude]);
+//       setMapZoom(13);
+//       setShowMap(true);
+      
+//       // Initialize map after a short delay to ensure DOM is ready
+//       setTimeout(() => {
+//         initializeMap();
+//       }, 500);
+//     }
+//   }, [user.location, editMode]);
+
+//   // Initialize map function
+//   const initializeMap = () => {
+//     if (!user.location?.latitude || !user.location?.longitude) return;
+    
+//     const lat = parseFloat(user.location.latitude);
+//     const lng = parseFloat(user.location.longitude);
+    
+//     if (isNaN(lat) || isNaN(lng)) return;
+    
+//     // If map container exists, create map
+//     const mapContainer = document.getElementById('profile-map');
+//     if (mapContainer && !mapRef.current) {
+//       // Destroy existing map if any
+//       if (mapRef.current) {
+//         mapRef.current.remove();
+//       }
+      
+//       // Create new map
+//       const map = L.map('profile-map').setView([lat, lng], 13);
+      
+//       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+//         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+//       }).addTo(map);
+      
+//       // Add marker
+//       const marker = L.marker([lat, lng]).addTo(map);
+//       marker.bindPopup(`
+//         <b>${user.name || 'User'}</b><br>
+//         ${user.location?.city || ''}, ${user.location?.state || ''}, ${user.location?.country || ''}
+//       `).openPopup();
+      
+//       markerRef.current = marker;
+//       mapRef.current = map;
+//     }
+//   };
 
 //   // Fetch all countries
 //   const fetchAllCountries = async () => {
@@ -168,12 +237,12 @@
 //     }
 //   };
 
-//   // Update user profile (name and location only - NO EMAIL)
+//   // Update user profile
 //   const updateUserProfile = async (updatedData) => {
 //     try {
 //       setUpdating(true);
       
-//       // Remove email from updatedData if it exists (prevent email update)
+//       // Remove email from updatedData if it exists
 //       const { email, ...dataToUpdate } = updatedData;
       
 //       const response = await fetch(`${BASE_URL}/user/update/${user.id || user._id}`, {
@@ -212,7 +281,7 @@
 //     }
 //   };
 
-//   // Update password only
+//   // Update password
 //   const updatePassword = async () => {
 //     // Validate passwords
 //     if (!passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
@@ -565,19 +634,6 @@
 //                     </p>
 //                   </div>
 //                 </div>
-
-//                 <div>
-//                   <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Last Updated</label>
-//                   <p className="mt-1 text-xs text-slate-500">
-//                     {user.updatedAt ? new Date(user.updatedAt).toLocaleDateString('en-US', {
-//                       month: 'long',
-//                       day: 'numeric',
-//                       year: 'numeric',
-//                       hour: '2-digit',
-//                       minute: '2-digit'
-//                     }) : 'Not available'}
-//                   </p>
-//                 </div>
 //               </div>
 //             </div>
 //           </div>
@@ -651,30 +707,90 @@
 //                   </select>
 //                 </div>
 
+//                 {/* Latitude & Longitude Inputs */}
+//                 <div className="grid grid-cols-2 gap-4">
+//                   <div>
+//                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
+//                       Latitude
+//                     </label>
+//                     <input
+//                       type="number"
+//                       name="location.latitude"
+//                       value={formData.location?.latitude || ''}
+//                       onChange={handleInputChange}
+//                       step="any"
+//                       className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+//                       placeholder="e.g., 37.7749"
+//                     />
+//                   </div>
+//                   <div>
+//                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
+//                       Longitude
+//                     </label>
+//                     <input
+//                       type="number"
+//                       name="location.longitude"
+//                       value={formData.location?.longitude || ''}
+//                       onChange={handleInputChange}
+//                       step="any"
+//                       className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+//                       placeholder="e.g., -122.4194"
+//                     />
+//                   </div>
+//                 </div>
+
 //                 {loadingLocation && (
 //                   <p className="text-xs text-blue-600">Loading location data...</p>
 //                 )}
 //               </div>
 //             ) : (
-//               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-//                 <div>
-//                   <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Country</label>
-//                   <p className="mt-1 text-sm font-medium text-slate-800">
-//                     {getCountryName(user.location?.country) || 'Not set'}
-//                   </p>
+//               <div>
+//                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+//                   <div>
+//                     <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Country</label>
+//                     <p className="mt-1 text-sm font-medium text-slate-800">
+//                       {getCountryName(user.location?.country) || 'Not set'}
+//                     </p>
+//                   </div>
+//                   <div>
+//                     <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">State</label>
+//                     <p className="mt-1 text-sm font-medium text-slate-800">
+//                       {getStateName(user.location?.state) || 'Not set'}
+//                     </p>
+//                   </div>
+//                   <div>
+//                     <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">City</label>
+//                     <p className="mt-1 text-sm font-medium text-slate-800">
+//                       {user.location?.city || 'Not set'}
+//                     </p>
+//                   </div>
+//                   <div>
+//                     <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Coordinates</label>
+//                     <p className="mt-1 text-sm font-mono text-slate-800">
+//                       {user.location?.latitude && user.location?.longitude ? (
+//                         <>
+//                           {user.location.latitude.toFixed(4)}°, {user.location.longitude.toFixed(4)}°
+//                         </>
+//                       ) : (
+//                         'Not set'
+//                       )}
+//                     </p>
+//                   </div>
 //                 </div>
-//                 <div>
-//                   <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">State</label>
-//                   <p className="mt-1 text-sm font-medium text-slate-800">
-//                     {getStateName(user.location?.state) || 'Not set'}
-//                   </p>
-//                 </div>
-//                 <div>
-//                   <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">City</label>
-//                   <p className="mt-1 text-sm font-medium text-slate-800">
-//                     {user.location?.city || 'Not set'}
-//                   </p>
-//                 </div>
+
+//                 {/* Map Display */}
+//                 {showMap && user.location?.latitude && user.location?.longitude && (
+//                   <div className="mt-4 border border-slate-200 rounded-lg overflow-hidden">
+//                     <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
+//                       <p className="text-xs font-medium text-slate-600">📍 Location Map</p>
+//                     </div>
+//                     <div 
+//                       id="profile-map" 
+//                       style={{ height: '300px', width: '100%' }}
+//                       className="z-0"
+//                     ></div>
+//                   </div>
+//                 )}
 //               </div>
 //             )}
 //           </div>
@@ -877,6 +993,10 @@ const Profile = () => {
   const [formData, setFormData] = useState({});
   const [message, setMessage] = useState({ type: '', text: '' });
   
+  // Profile photo state
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef(null);
+  
   // Map reference
   const mapRef = useRef(null);
   const markerRef = useRef(null);
@@ -905,6 +1025,80 @@ const Profile = () => {
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
   const LOCATION_API_KEY = 'e42d26fd2748415b32f2dc6a2cb00d9662c4425c4130ce446ceb0b4936001ded';
+
+  // Load user from both cookie and token
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  const loadUserData = () => {
+    // First try to get from cookie
+    const userData = Cookies.get('user');
+    let parsedUser = {};
+    
+    if (userData) {
+      try {
+        parsedUser = JSON.parse(userData);
+        console.log('✅ User from cookie:', parsedUser);
+      } catch (error) {
+        console.error('Error parsing user cookie:', error);
+      }
+    }
+
+    // Then try to get from token (which has profilePhoto)
+    const token = Cookies.get('token');
+    if (token) {
+      try {
+        // Decode JWT token
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        
+        const tokenData = JSON.parse(jsonPayload);
+        console.log('📦 Token data:', tokenData);
+        
+        // Merge token data with cookie data (token has profilePhoto)
+        parsedUser = {
+          ...parsedUser,
+          ...tokenData,
+          // Ensure id is set correctly
+          id: tokenData.id || parsedUser.id,
+          _id: tokenData.id || parsedUser._id
+        };
+        
+        // Update cookie with merged data
+        Cookies.set('user', JSON.stringify(parsedUser), {
+          expires: 7,
+          secure: import.meta.env.PROD,
+          sameSite: 'strict'
+        });
+      } catch (error) {
+        console.error('Error decoding token:', error);
+      }
+    }
+
+    setUser(parsedUser);
+    setFormData(parsedUser);
+    setIsActive(parsedUser.isActive !== false);
+
+    // Fetch additional user profile if needed
+    if (parsedUser.id || parsedUser._id) {
+      fetchUserProfile(parsedUser.id || parsedUser._id);
+    }
+  };
+
+  // Debug: Log user data whenever it changes
+  useEffect(() => {
+    console.log('👤 Current user object:', user);
+    console.log('🖼️ Profile photo value:', user.profilePhoto);
+    if (user.profilePhoto) {
+      console.log('✅ Profile photo exists:', user.profilePhoto.substring(0, 50) + '...');
+    } else {
+      console.log('❌ No profile photo in user object');
+    }
+  }, [user]);
 
   // Initialize map when coordinates are available
   useEffect(() => {
@@ -1062,10 +1256,29 @@ const Profile = () => {
       });
 
       const data = await response.json();
+      console.log('Fetched user data from API:', data);
 
       if (response.ok) {
-        setUser(data);
-        setFormData(data);
+        // Merge with existing user data (preserve profilePhoto from token if API doesn't have it)
+        setUser(prev => {
+          const updatedUser = {
+            ...prev,
+            ...data,
+            // Keep profilePhoto from token if API doesn't return it
+            profilePhoto: data.profilePhoto || prev.profilePhoto
+          };
+          
+          // Update cookie with merged data
+          Cookies.set('user', JSON.stringify(updatedUser), {
+            expires: 7,
+            secure: import.meta.env.PROD,
+            sameSite: 'strict'
+          });
+          
+          return updatedUser;
+        });
+        
+        setFormData(prev => ({ ...prev, ...data }));
         setIsActive(data.isActive);
         
         // Set selected location values from user data
@@ -1134,6 +1347,148 @@ const Profile = () => {
       setMessage({ type: 'error', text: 'Something went wrong' });
     } finally {
       setUpdating(false);
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    }
+  };
+
+  // Upload profile photo
+  const handleProfilePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setMessage({ 
+        type: 'error', 
+        text: 'Please select a valid image file (JPEG, PNG, GIF, WEBP)' 
+      });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage({ type: 'error', text: 'Image size should be less than 5MB' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('profilePhoto', file);
+
+    setUploadingPhoto(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      const response = await fetch(`${BASE_URL}/user/update/profile-photo/${user.id || user._id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${Cookies.get('token')}`
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+      console.log('Upload response:', data);
+
+      if (response.ok) {
+        // Handle different response structures
+        let photoUrl = null;
+        
+        if (data.data?.url) photoUrl = data.data.url;
+        else if (data.url) photoUrl = data.url;
+        else if (data.profilePhoto) photoUrl = data.profilePhoto;
+        else if (data.user?.profilePhoto) photoUrl = data.user.profilePhoto;
+        
+        if (photoUrl) {
+          // Update user state with new profile photo
+          setUser(prev => ({ 
+            ...prev, 
+            profilePhoto: photoUrl 
+          }));
+          
+          // Update cookie with new profile photo
+          const cookieUser = Cookies.get('user');
+          if (cookieUser) {
+            const parsedUser = JSON.parse(cookieUser);
+            Cookies.set('user', JSON.stringify({ 
+              ...parsedUser, 
+              profilePhoto: photoUrl 
+            }), {
+              expires: 7,
+              secure: import.meta.env.PROD,
+              sameSite: 'strict'
+            });
+          }
+
+          // Also update token by getting new token from response if available
+          if (data.token) {
+            Cookies.set('token', data.token, {
+              expires: 7,
+              secure: import.meta.env.PROD,
+              sameSite: 'strict'
+            });
+          }
+
+          setMessage({ type: 'success', text: 'Profile photo updated successfully!' });
+        } else {
+          setMessage({ type: 'error', text: 'No photo URL in response' });
+        }
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Upload failed' });
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      setMessage({ type: 'error', text: 'Failed to upload photo' });
+    } finally {
+      setUploadingPhoto(false);
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    }
+  };
+
+  // Remove profile photo
+  const handleRemovePhoto = async () => {
+    if (!window.confirm('Are you sure you want to remove your profile photo?')) return;
+
+    setUploadingPhoto(true);
+
+    try {
+      const response = await fetch(`${BASE_URL}/user/delete/profile-photo/${user.id || user._id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${Cookies.get('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        setUser(prev => ({ ...prev, profilePhoto: null }));
+        
+        // Update cookie
+        const cookieUser = Cookies.get('user');
+        if (cookieUser) {
+          const parsedUser = JSON.parse(cookieUser);
+          Cookies.set('user', JSON.stringify({ 
+            ...parsedUser, 
+            profilePhoto: null 
+          }), {
+            expires: 7,
+            secure: import.meta.env.PROD,
+            sameSite: 'strict'
+          });
+        }
+
+        setMessage({ type: 'success', text: 'Profile photo removed' });
+      } else {
+        const data = await response.json();
+        setMessage({ type: 'error', text: data.message || 'Failed to remove photo' });
+      }
+    } catch (error) {
+      console.error('Remove error:', error);
+      setMessage({ type: 'error', text: 'Something went wrong' });
+    } finally {
+      setUploadingPhoto(false);
       setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     }
   };
@@ -1224,18 +1579,6 @@ const Profile = () => {
   useEffect(() => {
     // Fetch countries when component mounts
     fetchAllCountries();
-    
-    const userData = Cookies.get('user');
-    if (userData) {
-      const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
-      setFormData(parsedUser);
-      setIsActive(parsedUser.isActive);
-
-      if (parsedUser.id || parsedUser._id) {
-        fetchUserProfile(parsedUser.id || parsedUser._id);
-      }
-    }
   }, []);
 
   const handleStatusToggle = () => {
@@ -1374,6 +1717,25 @@ const Profile = () => {
     return state ? state.name : code;
   };
 
+  // Get profile photo URL - handles multiple possible field names
+  const getProfilePhotoUrl = () => {
+    // Try different possible field names
+    const photoUrl = user.profilePhoto || 
+                     user.profilePicture || 
+                     user.avatar || 
+                     user.photo || 
+                     null;
+    
+    if (photoUrl) {
+      console.log('🖼️ Using profile photo URL:', photoUrl);
+      return photoUrl;
+    }
+    
+    // Fallback to UI Avatars
+    console.log('🎨 Using fallback avatar for:', user.name);
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=135bec&color=fff&size=128`;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -1416,8 +1778,11 @@ const Profile = () => {
 
       {/* Message */}
       {message.text && (
-        <div className={`mb-6 p-3 rounded-lg text-sm ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
-          }`}>
+        <div className={`mb-6 p-3 rounded-lg text-sm ${
+          message.type === 'success' 
+            ? 'bg-green-50 text-green-700 border border-green-200' 
+            : 'bg-red-50 text-red-700 border border-red-200'
+        }`}>
           {message.text}
         </div>
       )}
@@ -1433,15 +1798,62 @@ const Profile = () => {
             </h3>
 
             <div className="flex flex-col sm:flex-row gap-6">
-              {/* Avatar */}
+              {/* Avatar with Upload */}
               <div className="flex flex-col items-center sm:items-start">
-                <div className="relative">
+                <div className="relative group">
                   <img
-                    className="w-24 h-24 rounded-full border-4 border-white shadow-sm"
+                    key={user.profilePhoto || 'fallback'} // Force re-render when photo changes
+                    className="w-24 h-24 rounded-full border-4 border-white shadow-sm object-cover"
                     alt="Profile"
-                    src={`https://ui-avatars.com/api/?name=${user.name || 'User'}&background=135bec&color=fff&size=96`}
+                    src={getProfilePhotoUrl()}
+                    onError={(e) => {
+                      console.log('❌ Image failed to load:', e.target.src);
+                      // If image fails to load, fallback to UI Avatars
+                      e.target.onerror = null; // Prevent infinite loop
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=135bec&color=fff&size=128`;
+                    }}
                   />
+                  
+                  {/* Upload overlay - only show when not in edit mode */}
+                  {!editMode && (
+                    <>
+                      <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button
+                          onClick={() => fileInputRef.current.click()}
+                          disabled={uploadingPhoto}
+                          className="text-white text-xs font-medium px-2 py-1 bg-blue-600 rounded hover:bg-blue-700"
+                        >
+                          {uploadingPhoto ? '...' : 'Change'}
+                        </button>
+                      </div>
+                      
+                      {/* Hidden file input */}
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleProfilePhotoUpload}
+                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                        className="hidden"
+                      />
+                    </>
+                  )}
                 </div>
+                
+                {/* Remove photo button - check multiple possible field names */}
+                {!editMode && (user.profilePhoto || user.profilePicture || user.avatar) && (
+                  <button
+                    onClick={handleRemovePhoto}
+                    disabled={uploadingPhoto}
+                    className="mt-2 text-xs text-red-600 hover:text-red-800 disabled:opacity-50"
+                  >
+                    Remove photo
+                  </button>
+                )}
+                
+                {/* Uploading indicator */}
+                {uploadingPhoto && (
+                  <p className="mt-2 text-xs text-blue-600">Uploading...</p>
+                )}
               </div>
 
               {/* Info */}
@@ -1472,10 +1884,11 @@ const Profile = () => {
                   <div>
                     <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Role</label>
                     <div className="mt-1 flex items-center gap-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' :
-                          user.role === 'owner' ? 'bg-amber-100 text-amber-700' :
-                            'bg-blue-100 text-blue-700'
-                        }`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        user.role === 'admin' ? 'bg-purple-100 text-purple-700' :
+                        user.role === 'owner' ? 'bg-amber-100 text-amber-700' :
+                        'bg-blue-100 text-blue-700'
+                      }`}>
                         {user.role || 'user'}
                       </span>
                     </div>
@@ -1668,13 +2081,15 @@ const Profile = () => {
                 <button
                   onClick={handleStatusToggle}
                   disabled={updating}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isActive ? 'bg-blue-600' : 'bg-slate-300'
-                    }`}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    isActive ? 'bg-blue-600' : 'bg-slate-300'
+                  }`}
                   role="switch"
                 >
                   <span
-                    className={`${isActive ? 'translate-x-5' : 'translate-x-0'
-                      } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                    className={`${
+                      isActive ? 'translate-x-5' : 'translate-x-0'
+                    } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
                   />
                 </button>
               </div>
@@ -1709,8 +2124,9 @@ const Profile = () => {
                     {user.isVerified ? 'Verified' : 'Pending verification'}
                   </p>
                 </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.isVerified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                  }`}>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  user.isVerified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                }`}>
                   {user.isVerified ? 'Verified' : 'Unverified'}
                 </span>
               </div>

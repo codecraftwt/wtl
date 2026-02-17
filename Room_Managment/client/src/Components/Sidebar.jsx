@@ -1,4 +1,3 @@
-// // src/components/Sidebar.jsx
 // import React, { useState, useEffect } from 'react';
 // import { NavLink, useNavigate } from 'react-router-dom';
 // import Cookies from 'js-cookie';
@@ -52,7 +51,7 @@
 //             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
 //           </svg>
 //         ),
-//         roles: ['owner', 'admin']
+//         roles: ['user','owner', 'admin']
 //       },
 //       {
 //         name: 'History',
@@ -84,7 +83,7 @@
 //             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
 //           </svg>
 //         ),
-//         roles: ['owner','admin']
+//         roles: ['owner', 'admin']
 //       }
 //     ],
 //     admin: [
@@ -116,12 +115,10 @@
 //     const userRole = user.role;
 //     let items = [];
 
-//     // Add common items based on role
 //     items = items.concat(
 //       navigationItems.common.filter(item => item.roles.includes(userRole))
 //     );
 
-//     // Add role-specific items
 //     if (userRole === 'owner') {
 //       items = items.concat(navigationItems.owner);
 //     }
@@ -137,7 +134,7 @@
 //       {/* Mobile menu button */}
 //       <button
 //         onClick={() => setIsOpen(!isOpen)}
-//         className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-blue-600 text-white"
+//         className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-blue-600 text-white shadow-md hover:bg-blue-700"
 //       >
 //         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 //           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -145,19 +142,19 @@
 //       </button>
 
 //       {/* Sidebar */}
-//       <div className={`fixed inset-y-0 left-0 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition duration-200 ease-in-out z-30 w-64 bg-gradient-to-b from-gray-900 to-gray-800 text-white shadow-2xl`}>
+//       <div className={`fixed inset-y-0 left-0 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition duration-200 ease-in-out z-30 w-64 bg-white border-r border-slate-200 shadow-xl`}>
         
 //         {/* User Info */}
-//         <div className="p-6 border-b border-gray-700">
+//         <div className="p-6 border-b border-slate-200">
 //           <div className="flex items-center space-x-3">
-//             <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+//             <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center shadow-sm">
 //               <span className="text-xl font-bold text-white">
 //                 {user.name?.charAt(0).toUpperCase()}
 //               </span>
 //             </div>
 //             <div className="flex-1">
-//               <h3 className="font-semibold truncate">{user.name || 'User'}</h3>
-//               <p className="text-xs text-gray-400 capitalize">{user.role || 'Guest'}</p>
+//               <h3 className="font-semibold text-slate-800 truncate">{user.name || 'User'}</h3>
+//               <p className="text-xs text-slate-500 capitalize">{user.role || 'Guest'}</p>
 //             </div>
 //           </div>
 //         </div>
@@ -172,8 +169,8 @@
 //                   className={({ isActive }) =>
 //                     `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
 //                       isActive
-//                         ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-//                         : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+//                         ? 'bg-blue-600 text-white shadow-md'
+//                         : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
 //                     }`
 //                   }
 //                   onClick={() => setIsOpen(false)}
@@ -187,10 +184,10 @@
 //         </nav>
 
 //         {/* Logout Button */}
-//         <div className="p-4 border-t border-gray-700">
+//         <div className="p-4 border-t border-slate-200">
 //           <button
 //             onClick={handleLogout}
-//             className="flex items-center space-x-3 px-4 py-3 w-full rounded-lg text-gray-300 hover:bg-red-600 hover:text-white transition-all duration-200"
+//             className="flex items-center space-x-3 px-4 py-3 w-full rounded-lg text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
 //           >
 //             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 //               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -215,6 +212,8 @@
 
 
 
+
+// src/components/Sidebar.jsx
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
@@ -225,9 +224,56 @@ const Sidebar = () => {
   const [user, setUser] = useState({});
 
   useEffect(() => {
+    loadUserFromCookies();
+  }, []);
+
+  const loadUserFromCookies = () => {
     const userData = Cookies.get('user');
+    console.log('Raw cookie data:', userData);
+    
     if (userData) {
-      setUser(JSON.parse(userData));
+      try {
+        const parsedUser = JSON.parse(userData);
+        console.log('✅ User loaded from cookie:', parsedUser);
+        console.log('✅ Profile photo URL:', parsedUser.profilePhoto);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error('❌ Error parsing user data:', error);
+      }
+    } else {
+      console.log('❌ No user cookie found');
+    }
+  };
+
+  // Also try to get from token if available (as backup)
+  useEffect(() => {
+    const token = Cookies.get('token');
+    if (token) {
+      try {
+        // Decode JWT token (just for debugging)
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        
+        const tokenData = JSON.parse(jsonPayload);
+        console.log('📦 Token data:', tokenData);
+        
+        // If user cookie doesn't have profilePhoto but token does, update cookie
+        if (tokenData.profilePhoto && (!user.profilePhoto || user.profilePhoto !== tokenData.profilePhoto)) {
+          console.log('🔄 Updating user cookie with profile photo from token');
+          const updatedUser = { ...user, ...tokenData };
+          Cookies.set('user', JSON.stringify(updatedUser), {
+            expires: 7,
+            secure: import.meta.env.PROD,
+            sameSite: 'strict'
+          });
+          setUser(updatedUser);
+        }
+      } catch (error) {
+        console.error('Error decoding token:', error);
+      }
     }
   }, []);
 
@@ -364,12 +410,38 @@ const Sidebar = () => {
         {/* User Info */}
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center shadow-sm">
-              <span className="text-xl font-bold text-white">
-                {user.name?.charAt(0).toUpperCase()}
-              </span>
+            {/* Profile Photo Circle */}
+            <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-blue-600 flex-shrink-0">
+              {user.profilePhoto ? (
+                <img
+                  src={user.profilePhoto}
+                  alt={user.name || 'User'}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.log('❌ Image failed to load:', user.profilePhoto);
+                    // If image fails to load, show fallback with first letter
+                    e.target.onerror = null; // Prevent infinite loop
+                    e.target.style.display = 'none';
+                    // Get parent and add fallback
+                    const parent = e.target.parentElement;
+                    if (parent) {
+                      parent.innerHTML = `
+                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-r from-blue-500 to-blue-600">
+                          <span class="text-xl font-bold text-white">${user.name?.charAt(0).toUpperCase() || 'U'}</span>
+                        </div>
+                      `;
+                    }
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-blue-500 to-blue-600">
+                  <span className="text-xl font-bold text-white">
+                    {user.name?.charAt(0).toUpperCase() || 'U'}
+                  </span>
+                </div>
+              )}
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-slate-800 truncate">{user.name || 'User'}</h3>
               <p className="text-xs text-slate-500 capitalize">{user.role || 'Guest'}</p>
             </div>
@@ -392,8 +464,8 @@ const Sidebar = () => {
                   }
                   onClick={() => setIsOpen(false)}
                 >
-                  {item.icon}
-                  <span className="font-medium">{item.name}</span>
+                  <span className="flex-shrink-0">{item.icon}</span>
+                  <span className="font-medium truncate">{item.name}</span>
                 </NavLink>
               </li>
             ))}
@@ -406,7 +478,7 @@ const Sidebar = () => {
             onClick={handleLogout}
             className="flex items-center space-x-3 px-4 py-3 w-full rounded-lg text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
             <span className="font-medium">Logout</span>
