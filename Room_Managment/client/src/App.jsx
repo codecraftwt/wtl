@@ -16,6 +16,7 @@ import OwnerRooms from './Pages/Owner/Rooms'
 import AllUsers from './Pages/Admin/AllUsers'
 import AllOwners from './Pages/Admin/AllOwners'
 import Dashboard from './Pages/Dashboard'
+import ForgotPassword from './Pages/Auth/ForgotPassword'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path='/' element={<Login />} />
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Registration />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* ✅ ALL PROTECTED ROUTES - AUTOMATIC SIDEBAR */}
         <Route element={<Layout />}>

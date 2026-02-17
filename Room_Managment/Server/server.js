@@ -56,6 +56,7 @@ const roomroutes = require('./src/Rooms/routes/roomRoutes');
 const bookingroutes = require('./src/Booking/routes/bookingRoute');
 const activebookingroutes = require('./src/ActivBooking/routes/activeBookingRoutes');
 const reviewroutes = require('./src/Review/routes/reviewsRoute');
+const forgotPasswordRoutes = require('./src/User/routes/forgotPasswordRoutes');
 const cors = require('cors');
 dotenv.config();
 
@@ -77,6 +78,7 @@ app.use('/api/room', roomroutes);
 app.use('/api/booking', bookingroutes);
 app.use('/api/activebooking', activebookingroutes);
 app.use('/api/review', reviewroutes);
+app.use('/api/otp', forgotPasswordRoutes);
 
 
 
@@ -85,5 +87,5 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

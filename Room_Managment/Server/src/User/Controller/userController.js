@@ -1,5 +1,7 @@
 const User = require('../model/userModel');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+
 // 1. Update User (except role, isVerified, email)
 // exports.updateUser = async (req, res) => {
 //   try {
@@ -156,8 +158,6 @@ exports.getUsersByRole = async (req, res) => {
   }
 };
 
-
-
 // 4. Delete User
 exports.deleteUser = async (req, res) => {
   try {
@@ -198,5 +198,7 @@ exports.toggleUserStatus = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+
 
 

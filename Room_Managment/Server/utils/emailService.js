@@ -87,7 +87,7 @@ const emailTemplates = {
             </p>
             
             <div style="text-align: center; margin: 35px 0;">
-              <a href="${process.env.FRONTEND_URL}/login" style="background: #667eea; color: white; padding: 14px 35px; text-decoration: none; border-radius: 50px; font-weight: bold; display: inline-block; box-shadow: 0 2px 5px rgba(102,126,234,0.4);">
+              <a href="${`https://roommanagment.vercel.app/`}/login" style="background: #667eea; color: white; padding: 14px 35px; text-decoration: none; border-radius: 50px; font-weight: bold; display: inline-block; box-shadow: 0 2px 5px rgba(102,126,234,0.4);">
                 🔑 Login to Your Account
               </a>
             </div>

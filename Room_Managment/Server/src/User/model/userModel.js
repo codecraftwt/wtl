@@ -56,6 +56,9 @@ const userSchema = new mongoose.Schema(
       state: { type: String },
       city: { type: String }
     },
+    resetPasswordOTP: { type: String }, // Will store hashed OTP
+    resetPasswordExpires: { type: Date }, // OTP expiry time
+    resetPasswordAttempts: { type: Number, default: 0 },// Track failed attempts
   },
   { timestamps: true }
 );
