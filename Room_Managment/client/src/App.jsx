@@ -48,3 +48,60 @@ function App() {
 }
 
 export default App
+
+
+
+// import './App.css'
+// import Login from './Pages/Auth/Login'
+// import Registration from './Pages/Auth/Registration'
+// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+// import Layout from './Components/Layout'
+// import ProtectedRoute from './Components/ProtectedRoute'
+// import Profile from './Components/Profile'
+// import Bookings from './Pages/Bookings'
+// import ActiveBookings from './Pages/ActiveBookings'
+// import History from './Pages/History'
+// import OwnerRooms from './Pages/Owner/Rooms'
+// import AllUsers from './Pages/Admin/AllUsers'
+// import AllOwners from './Pages/Admin/AllOwners'
+// import Dashboard from './Pages/Dashboard'
+// import ForgotPassword from './Pages/Auth/ForgotPassword'
+
+// function App() {
+//   return (
+//     <Router>
+//       <Routes>
+//         {/* Public Routes - No Authentication Required */}
+//         <Route path='/login' element={<Login />} />
+//         <Route path='/register' element={<Registration />} />
+//         <Route path="/forgot-password" element={<ForgotPassword />} />
+
+//         {/* Protected Routes - Require Authentication */}
+//         <Route element={<ProtectedRoute />}>
+//           <Route element={<Layout />}>
+//             {/* Redirect root to dashboard */}
+//             <Route path='/' element={<Dashboard />} />
+            
+//             {/* Common Routes - These will have sidebar automatically */}
+//             <Route path='/profile' element={<Profile />} />
+//             <Route path='/bookings' element={<Bookings />} />
+//             <Route path='/active-bookings' element={<ActiveBookings />} />
+//             <Route path='/history' element={<History />} />
+
+//             {/* Owner Routes */}
+//             <Route path='/owner/rooms' element={<OwnerRooms />} />
+
+//             {/* Admin Routes */}
+//             <Route path='/admin/users' element={<AllUsers />} />
+//             <Route path='/admin/owners' element={<AllOwners />} />
+//           </Route>
+//         </Route>
+
+//         {/* Optional: Catch-all route for 404 */}
+//         <Route path="*" element={<div>404 - Page Not Found</div>} />
+//       </Routes>
+//     </Router>
+//   )
+// }
+
+// export default App

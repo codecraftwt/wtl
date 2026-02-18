@@ -1255,12 +1255,12 @@ const Dashboard = () => {
           </div>
         )}
       </div>
- 
+
       {/* Message */}
       {message.text && (
         <div className={`mb-6 p-4 rounded-lg text-sm flex items-center gap-3 ${message.type === 'success'
-            ? 'bg-green-50 text-green-800 border border-green-200'
-            : 'bg-red-50 text-red-800 border border-red-200'
+          ? 'bg-green-50 text-green-800 border border-green-200'
+          : 'bg-red-50 text-red-800 border border-red-200'
           }`}>
           <span className={`material-icons ${message.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
             {message.type === 'success' ? 'check_circle' : 'error'}
@@ -1371,8 +1371,8 @@ const Dashboard = () => {
                   {/* Availability Badge */}
                   <div className="absolute top-2 right-2">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${room.isAvailable
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-amber-100 text-amber-700'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-amber-100 text-amber-700'
                       }`}>
                       {room.isAvailable ? 'Available' : 'Booked'}
                     </span>
@@ -1445,8 +1445,8 @@ const Dashboard = () => {
                       }}
                       disabled={!room.isAvailable}
                       className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${room.isAvailable
-                          ? 'bg-blue-600 text-white hover:bg-blue-700'
-                          : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                         }`}
                     >
                       {room.isAvailable ? 'Book Now' : 'Unavailable'}
@@ -1457,8 +1457,8 @@ const Dashboard = () => {
                         openReviewModal(room);
                       }}
                       className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${userReview
-                          ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
                     >
                       {userReview ? 'Update Review' : 'Write Review'}
@@ -1636,8 +1636,8 @@ const Dashboard = () => {
                   <div>
                     <p className="text-xs text-slate-500">Status</p>
                     <span className={`inline-block mt-1 px-2 py-1 rounded-full text-xs font-semibold ${selectedRoom.isAvailable
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-amber-100 text-amber-700'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-amber-100 text-amber-700'
                       }`}>
                       {selectedRoom.isAvailable ? 'Available' : 'Booked'}
                     </span>
@@ -1676,8 +1676,8 @@ const Dashboard = () => {
                         }}
                         disabled={!selectedRoom.isAvailable}
                         className={`flex-1 px-4 py-3 rounded-lg text-sm font-bold transition-colors ${selectedRoom.isAvailable
-                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                            : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                           }`}
                       >
                         {selectedRoom.isAvailable ? 'Book This Room' : 'Not Available'}
