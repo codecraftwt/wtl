@@ -15,16 +15,33 @@ const ProtectedRoute = ({ children }) => {
 
     checkAuth();
 
-    // Add event listener for storage changes (logout in another tab)
+    // Define the storage change handler
     const handleStorageChange = () => {
       checkAuth();
     };
+
+    // Handle browser back/forward buttons
+    const handlePopState = () => {
+      checkAuth();
+    };
+
+    // Check when page becomes visible (user returns to tab)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkAuth();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('storage', handleStorageChange);
 
     return () => {
+      window.removeEventListener('popstate', handlePopState);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [location]); // Re-check when route changes
+  }, [location]);
 
   // Show nothing while checking authentication
   if (isAuthenticated === null) {

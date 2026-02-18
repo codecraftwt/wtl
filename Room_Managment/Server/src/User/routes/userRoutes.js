@@ -17,9 +17,7 @@ const storage = multer.diskStorage({
 
 // Initialize multer with the defined storage configuration
 const upload = multer({ storage: storage });
-// router.use(protect);
-//profile update
-// router.put('/update/profile-photo/:userId', updateProfilePhoto);
+
 router.put('/update/profile-photo/:userId', upload.single('profilePhoto'), updateProfilePhoto);
 
 // 1. Update user by ID --------------- Allow for All (admin, owner, user)

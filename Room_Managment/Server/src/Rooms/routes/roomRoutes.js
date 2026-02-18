@@ -30,7 +30,7 @@ const router = express.Router();
 // router.use(protect);
 
 // Create Room
-router.post('/', isOwner,protect, createRoom);
+router.post('/', protect, createRoom);
 
 router.post('/upload-image',protect, upload.single('image'), uploadImage);
 
@@ -47,7 +47,7 @@ router.put('/:roomId',protect, isOwnerOrAdmin, updateRoom);
 router.delete('/:roomId', protect,isOwnerOrAdmin, deleteRoom);
 
 // Toggle Room Availability
-router.put('/:roomId/availability', isOwner,protect, toggleRoomAvailability);
+router.put('/:roomId/availability', protect, toggleRoomAvailability);
 
 // Search Rooms (with filters)
 router.post('/search', isAdminOrOwnerOrUser,protect, searchRooms);

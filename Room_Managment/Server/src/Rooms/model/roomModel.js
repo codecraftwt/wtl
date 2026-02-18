@@ -6,8 +6,11 @@ const roomSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
     location: {
-        lat: { type: Number, required: true },
-        lng: { type: Number, required: true }
+        latitude: { type: Number },
+        longitude: { type: Number },
+        country: { type: String },
+        state: { type: String },
+        city: { type: String }
     },
     noOfBeds: { type: Number, required: true },
     roomSize: { type: Number, required: true },

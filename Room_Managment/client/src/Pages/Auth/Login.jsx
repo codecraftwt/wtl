@@ -72,24 +72,32 @@ const Login = () => {
         });
 
         // Success toast
+        // toast.success('Login successful! Redirecting...', {
+        //   position: "top-right",
+        //   autoClose: 2000,
+        //   onClose: () => {
+        //     // ✅ ROLE-BASED REDIRECTION
+        //     switch (data.role) {
+        //       case 'owner':
+        //         navigate('/');
+        //         break;
+        //       case 'user':
+        //         navigate('/');
+        //         break;
+        //       case 'admin':
+        //         navigate('/');
+        //         break;
+        //       default:
+        //         navigate('/');
+        //     }
+        //   }
         toast.success('Login successful! Redirecting...', {
           position: "top-right",
           autoClose: 2000,
           onClose: () => {
-            // ✅ ROLE-BASED REDIRECTION
-            switch (data.role) {
-              case 'owner':
-                navigate('/');
-                break;
-              case 'user':
-                navigate('/');
-                break;
-              case 'admin':
-                navigate('/');
-                break;
-              default:
-                navigate('/');
-            }
+            // Get the page they were trying to access, or go to dashboard
+            const from = location.state?.from?.pathname || '/dashboard';
+            navigate(from, { replace: true });
           }
         });
 

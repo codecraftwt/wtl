@@ -1,13 +1,74 @@
 const Room = require('../model/roomModel');
 const cloudinary = require('../../../utils/cloudinaryConfig');
 const { validationResult } = require('express-validator');
+const User = require('../../User/model/userModel');
 
 
 
 // Create Room
+// exports.createRoom = async (req, res) => {
+//     try {
+//         const { title, description, noOfBeds, roomSize, maxOccupancy, images, pricePerDay, timeForCheckout, ownerId, location } = req.body;
+
+//         const newRoom = new Room({
+//             title,
+//             description,
+//             noOfBeds,
+//             roomSize,
+//             maxOccupancy,
+//             images,
+//             pricePerDay,
+//             timeForCheckout,
+//             ownerId,
+//             location,  // Ensure location is passed with 'lat' and 'lng'
+//         });
+
+//         await newRoom.save();
+//         res.status(201).json({
+//             message: "Room created successfully",
+//             room: newRoom
+//         });
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// };
 exports.createRoom = async (req, res) => {
     try {
         const { title, description, noOfBeds, roomSize, maxOccupancy, images, pricePerDay, timeForCheckout, ownerId, location } = req.body;
+
+        // Validate required fields
+        if (!title || !description || !noOfBeds || !roomSize || !maxOccupancy || !pricePerDay || !timeForCheckout || !ownerId) {
+            return res.status(400).json({ 
+                message: 'Missing required fields' 
+            });
+        }
+
+        // Get owner details (optional - for default location)
+        const owner = await User.findById(ownerId);
+        
+        // Prepare location object
+        let roomLocation = {};
+
+        if (location) {
+            // Use provided location with the correct structure
+            roomLocation = {
+                latitude: location.latitude || null,
+                longitude: location.longitude || null,
+                country: location.country || null,
+                state: location.state || null,
+                city: location.city || null
+            };
+        } else if (owner && owner.location) {
+            // Use owner's location as default
+            roomLocation = {
+                latitude: owner.location.latitude || null,
+                longitude: owner.location.longitude || null,
+                country: owner.location.country || null,
+                state: owner.location.state || null,
+                city: owner.location.city || null
+            };
+        }
 
         const newRoom = new Room({
             title,
@@ -15,24 +76,31 @@ exports.createRoom = async (req, res) => {
             noOfBeds,
             roomSize,
             maxOccupancy,
-            images,
+            images: images || [],
             pricePerDay,
             timeForCheckout,
             ownerId,
-            location,  // Ensure location is passed with 'lat' and 'lng'
+            location: roomLocation,
         });
 
         await newRoom.save();
+        
+        // Populate owner details in response
+        await newRoom.populate('ownerId', 'name email location');
+
         res.status(201).json({
             message: "Room created successfully",
             room: newRoom
         });
+        
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error creating room:', err);
+        res.status(500).json({ 
+            message: 'Server error',
+            error: err.message 
+        });
     }
 };
-
 // Get Room by ID
 exports.getRoomById = async (req, res) => {
     try {
@@ -68,6 +136,43 @@ exports.getAllRooms = async (req, res) => {
 };
 
 // Update Room (except ownerId)
+// exports.updateRoom = async (req, res) => {
+//     try {
+//         const roomId = req.params.roomId;
+//         const { title, description, noOfBeds, roomSize, maxOccupancy, images, pricePerDay, timeForCheckout, isAvailable, location } = req.body;
+
+//         const room = await Room.findById(roomId);
+//         if (!room) {
+//             return res.status(404).json({ message: 'Room not found' });
+//         }
+
+//         // Update room fields, including location (lat and lng)
+//         room.title = title || room.title;
+//         room.description = description || room.description;
+//         room.noOfBeds = noOfBeds || room.noOfBeds;
+//         room.roomSize = roomSize || room.roomSize;
+//         room.maxOccupancy = maxOccupancy || room.maxOccupancy;
+//         room.images = images || room.images;
+//         room.pricePerDay = pricePerDay || room.pricePerDay;
+//         room.timeForCheckout = timeForCheckout || room.timeForCheckout;
+//         room.isAvailable = isAvailable === undefined ? room.isAvailable : isAvailable;
+
+//         // If location is provided, update it. Make sure to check if it's valid.
+//         if (location) {
+//             room.location = {
+//                 lat: location.lat || room.location.lat,
+//                 lng: location.lng || room.location.lng
+//             };
+//         }
+
+//         await room.save();
+
+//         res.status(200).json(room);
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// };
 exports.updateRoom = async (req, res) => {
     try {
         const roomId = req.params.roomId;
@@ -75,10 +180,19 @@ exports.updateRoom = async (req, res) => {
 
         const room = await Room.findById(roomId);
         if (!room) {
-            return res.status(404).json({ message: 'Room not found' });
+            return res.status(404).json({ 
+                message: 'Room not found' 
+            });
         }
 
-        // Update room fields, including location (lat and lng)
+        // Check if user is authorized (owner or admin)
+        if (req.user.role !== 'admin' && room.ownerId.toString() !== req.user.id.toString()) {
+            return res.status(403).json({ 
+                message: 'You are not authorized to update this room' 
+            });
+        }
+
+        // Update basic fields
         room.title = title || room.title;
         room.description = description || room.description;
         room.noOfBeds = noOfBeds || room.noOfBeds;
@@ -87,25 +201,37 @@ exports.updateRoom = async (req, res) => {
         room.images = images || room.images;
         room.pricePerDay = pricePerDay || room.pricePerDay;
         room.timeForCheckout = timeForCheckout || room.timeForCheckout;
-        room.isAvailable = isAvailable === undefined ? room.isAvailable : isAvailable;
+        room.isAvailable = isAvailable !== undefined ? isAvailable : room.isAvailable;
 
-        // If location is provided, update it. Make sure to check if it's valid.
+        // Update location if provided - with correct structure
         if (location) {
             room.location = {
-                lat: location.lat || room.location.lat,
-                lng: location.lng || room.location.lng
+                latitude: location.latitude !== undefined ? location.latitude : room.location?.latitude,
+                longitude: location.longitude !== undefined ? location.longitude : room.location?.longitude,
+                country: location.country || room.location?.country,
+                state: location.state || room.location?.state,
+                city: location.city || room.location?.city
             };
         }
 
         await room.save();
+        
+        // Populate owner details
+        await room.populate('ownerId', 'name email location');
 
-        res.status(200).json(room);
+        res.status(200).json({
+            message: "Room updated successfully",
+            room
+        });
+        
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error updating room:', err);
+        res.status(500).json({ 
+            message: 'Server error',
+            error: err.message 
+        });
     }
 };
-
 // Delete Room
 exports.deleteRoom = async (req, res) => {
     try {
