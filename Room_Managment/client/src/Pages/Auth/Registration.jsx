@@ -677,14 +677,14 @@ const Registration = () => {
               Already have an account?{' '}
               <button
                 type="button"
-                onClick={()=>navigate('/')}
+                onClick={()=>navigate('/login')}
                 className="text-emerald-600 hover:text-emerald-800 font-semibold hover:underline"
               >
                 Sign in
               </button>
             </p>
           </form>
-
+ 
           {/* Help Button */}
           <button
             type="button"

@@ -1,34 +1,10 @@
 const Room = require('../model/roomModel');
 const cloudinary = require('../../../utils/cloudinaryConfig');
 const { validationResult } = require('express-validator');
+
+
+
 // Create Room
-// exports.createRoom = async (req, res) => {
-//     try {
-//         const { title, description, noOfBeds, roomSize, maxOccupancy, images, pricePerDay, timeForCheckout, ownerId } = req.body;
-
-//         const newRoom = new Room({
-//             title,
-//             description,
-//             noOfBeds,
-//             roomSize,
-//             maxOccupancy,
-//             images,
-//             pricePerDay,
-//             timeForCheckout,
-//             ownerId,
-//         });
-
-//         await newRoom.save();
-//         res.status(201).json({
-//             message: "Room created successfully",
-//             room: newRoom
-//         });
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).json({ message: 'Server error' });
-//     }
-// };
-
 exports.createRoom = async (req, res) => {
     try {
         const { title, description, noOfBeds, roomSize, maxOccupancy, images, pricePerDay, timeForCheckout, ownerId, location } = req.body;
@@ -57,23 +33,7 @@ exports.createRoom = async (req, res) => {
     }
 };
 
-
 // Get Room by ID
-// exports.getRoomById = async (req, res) => {
-//     try {
-//         const roomId = req.params.roomId;
-
-//         const room = await Room.findById(roomId);
-//         if (!room) {
-//             return res.status(404).json({ message: 'Room not found' });
-//         }
-
-//         res.status(200).json(room);
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).json({ message: 'Server error' });
-//     }
-// };
 exports.getRoomById = async (req, res) => {
     try {
         const roomId = req.params.roomId;
@@ -108,35 +68,6 @@ exports.getAllRooms = async (req, res) => {
 };
 
 // Update Room (except ownerId)
-// exports.updateRoom = async (req, res) => {
-//     try {
-//         const roomId = req.params.roomId;
-//         const { title, description, noOfBeds, roomSize, maxOccupancy, images, pricePerDay, timeForCheckout, isAvailable } = req.body;
-
-//         const room = await Room.findById(roomId);
-//         if (!room) {
-//             return res.status(404).json({ message: 'Room not found' });
-//         }
-
-//         // Update room fields
-//         room.title = title || room.title;
-//         room.description = description || room.description;
-//         room.noOfBeds = noOfBeds || room.noOfBeds;
-//         room.roomSize = roomSize || room.roomSize;
-//         room.maxOccupancy = maxOccupancy || room.maxOccupancy;
-//         room.images = images || room.images;
-//         room.pricePerDay = pricePerDay || room.pricePerDay;
-//         room.timeForCheckout = timeForCheckout || room.timeForCheckout;
-//         room.isAvailable = isAvailable === undefined ? room.isAvailable : isAvailable;
-
-//         await room.save();
-
-//         res.status(200).json(room);
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).json({ message: 'Server error' });
-//     }
-// };
 exports.updateRoom = async (req, res) => {
     try {
         const roomId = req.params.roomId;
@@ -295,11 +226,6 @@ exports.searchRooms = async (req, res) => {
         });
     }
 };
-
-
-
-
-
 
 // Image Upload
 exports.uploadImage = async (req, res) => {

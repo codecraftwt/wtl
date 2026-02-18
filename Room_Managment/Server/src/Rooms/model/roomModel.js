@@ -10,12 +10,12 @@ const roomSchema = new mongoose.Schema({
         lng: { type: Number, required: true }
     },
     noOfBeds: { type: Number, required: true },
-    roomSize: { type: Number, required: true }, 
+    roomSize: { type: Number, required: true },
     maxOccupancy: { type: Number, required: true },
-    images: [{ type: String }], 
+    images: [{ type: String }],
     isAvailable: { type: Boolean, default: true },
     pricePerDay: { type: Number, required: true },
-    timeForCheckout: { type: Number, required: true }, 
+    timeForCheckout: { type: Number, required: true },
 }, { timestamps: true });
 
 const Room = mongoose.model('Room', roomSchema);
