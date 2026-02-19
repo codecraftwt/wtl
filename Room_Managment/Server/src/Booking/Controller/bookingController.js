@@ -504,33 +504,77 @@ exports.getBookingsForRoom = async (req, res) => {
 
 //Cancele Booking
 
+// exports.cancelBooking = async (req, res) => {
+//     try {
+//         const booking = await Booking.findById(req.params.bookingId);
+
+//         if (!booking) {
+//             return res.status(404).json({ message: 'Booking not found' });
+//         }
+
+//         // Set the booking as canceled
+//         booking.bookingCompleted = true;
+//         booking.payment_status = false;
+//         booking.isbookingcancel = true;  // Use the correct field name 'isbookingcancel'
+
+//         // Get the associated room and set its availability to true
+//         const room = await Room.findById(booking.roomId);
+//         if (room) {
+//             room.isAvailable = true;  // Mark the room as available again
+//             await room.save();  // Save the updated room status
+//         }
+
+//         // Save the booking status with isbookingcancel set to true
+//         await booking.save();
+
+//         res.status(200).json({
+//             message: 'Booking canceled successfully',
+//             booking,
+//         });
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// };
 exports.cancelBooking = async (req, res) => {
     try {
-        const booking = await Booking.findById(req.params.bookingId);
+        const bookingId = req.params.bookingId;
+
+        const booking = await Booking.findById(bookingId);
 
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
         }
 
-        // Set the booking as canceled
-        booking.bookingCompleted = true;
-        booking.payment_status = false;
-        booking.isbookingcancel = true;  // Use the correct field name 'isbookingcancel'
-
-        // Get the associated room and set its availability to true
-        const room = await Room.findById(booking.roomId);
-        if (room) {
-            room.isAvailable = true;  // Mark the room as available again
-            await room.save();  // Save the updated room status
+        // If already cancelled
+        if (booking.isbookingcancel) {
+            return res.status(400).json({
+                message: 'Booking already cancelled'
+            });
         }
 
-        // Save the booking status with isbookingcancel set to true
+        // 1️⃣ Update Booking Status
+        booking.bookingCompleted = true;
+        booking.payment_status = false;
+        booking.isbookingcancel = true;
+
         await booking.save();
 
+        // 2️⃣ Make Room Available Again
+        const room = await Room.findById(booking.roomId);
+        if (room) {
+            room.isAvailable = true;
+            await room.save();
+        }
+
+        // 3️⃣ Delete From ActiveBooking Collection
+        await ActiveBooking.findOneAndDelete({ bookingId: bookingId });
+
         res.status(200).json({
-            message: 'Booking canceled successfully',
-            booking,
+            message: 'Booking cancelled successfully and removed from active bookings',
+            booking
         });
+
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error' });

@@ -4,7 +4,6 @@ const { validationResult } = require('express-validator');
 const User = require('../../User/model/userModel');
 
 
-
 // Create Room
 // exports.createRoom = async (req, res) => {
 //     try {
