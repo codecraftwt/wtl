@@ -1644,7 +1644,7 @@ const OwnerRooms = () => {
         });
         setEditMode(false);
         setSelectedRoom(null);
-        fetchOwnerRooms(); // Refresh the rooms list
+        fetchOwnerRooms(); 
       } else {
         setMessage({ 
           type: 'error', 

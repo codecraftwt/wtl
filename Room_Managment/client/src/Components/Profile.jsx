@@ -1165,7 +1165,7 @@ const Profile = () => {
       
       if (Array.isArray(data)) {
         setCountries(data);
-        console.log('All Countries:', data);
+        // console.log('All Countries:', data);
       } else {
         console.error('Error loading countries:', data);
       }
