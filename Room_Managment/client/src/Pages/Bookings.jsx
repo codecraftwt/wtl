@@ -1,11 +1,1247 @@
 // import React, { useState, useEffect } from 'react';
 // import Cookies from 'js-cookie';
 // import 'material-icons/iconfont/material-icons.css';
+// import { toast, ToastContainer } from 'react-toastify';
+// import 'react-toastify/dist/ReactToastify.css';
 
 // const Bookings = () => {
 //   const [activeTab, setActiveTab] = useState('create');
 //   const [loading, setLoading] = useState(false);
-//   const [message, setMessage] = useState({ type: '', text: '' });
+//   const [user, setUser] = useState({});
+  
+//   // Bookings data
+//   const [bookingDetails, setBookingDetails] = useState(null);
+//   const [roomBookings, setRoomBookings] = useState([]);
+//   const [rooms, setRooms] = useState([]);
+//   const [activeBookingCheck, setActiveBookingCheck] = useState(null);
+  
+//   // Form states
+//   const [createForm, setCreateForm] = useState({
+//     roomId: '',
+//     bookingStartDate: '',
+//     bookingEndDate: ''
+//   });
+
+//   const [searchBookingId, setSearchBookingId] = useState('');
+//   const [checkoutData, setCheckoutData] = useState({
+//     bookingId: '',
+//     amount: '',
+//     payment_method: 'cash'
+//   });
+//   const [selectedRoom, setSelectedRoom] = useState('');
+
+//   const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+//   // Get auth headers with token
+//   const getAuthHeaders = () => {
+//     const token = Cookies.get('token');
+//     return {
+//       'Content-Type': 'application/json',
+//       'Authorization': `Bearer ${token}`
+//     };
+//   };
+
+//   // Load user data and token on mount
+//   useEffect(() => {
+//     const userData = Cookies.get('user');
+//     if (userData) {
+//       const parsedUser = JSON.parse(userData);
+//       setUser(parsedUser);
+//     }
+//     fetchAllRooms();
+    
+//     // Welcome toast
+//     // toast.info('👋 Welcome to Bookings Management', {
+//     //   position: "top-right",
+//     //   autoClose: 3000,
+//     // });
+//   }, []);
+
+//   // GET ALL ROOMS - /api/room/
+//   const fetchAllRooms = async () => {
+//     try {
+//       const response = await fetch(`${BASE_URL}/room/`, {
+//         method: 'GET',
+//         headers: getAuthHeaders(),
+//         credentials: 'include'
+//       });
+//       const data = await response.json();
+//       if (response.ok) {
+//         setRooms(data);
+//         // toast.success(`✅ Loaded ${data.length} rooms successfully`, {
+//         //   position: "top-right",
+//         //   autoClose: 2000,
+//         // });
+//       }
+//     } catch (error) {
+//       console.error('Error fetching rooms:', error);
+//       toast.error('Failed to load rooms', {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//     }
+//   };
+
+//   // 1. CREATE BOOKING - POST /api/booking/create
+//   const createBooking = async (e) => {
+//     e.preventDefault();
+//     setLoading(true);
+
+//     // Validate dates
+//     const startDate = new Date(createForm.bookingStartDate);
+//     const endDate = new Date(createForm.bookingEndDate);
+    
+//     if (endDate <= startDate) {
+//       toast.error('Check-out date must be after check-in date', {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//       setLoading(false);
+//       return;
+//     }
+
+//     const loadingToast = toast.loading('Creating your booking...', {
+//       position: "top-right",
+//     });
+
+//     try {
+//       const response = await fetch(`${BASE_URL}/booking/create`, {
+//         method: 'POST',
+//         headers: getAuthHeaders(),
+//         credentials: 'include',
+//         body: JSON.stringify({
+//           userId: user.id,
+//           roomId: createForm.roomId,
+//           bookingStartDate: new Date(createForm.bookingStartDate).toISOString(),
+//           bookingEndDate: new Date(createForm.bookingEndDate).toISOString()
+//         })
+//       });
+
+//       const data = await response.json();
+//       toast.dismiss(loadingToast);
+
+//       if (response.ok) {
+//         const selectedRoomDetails = rooms.find(r => r._id === createForm.roomId);
+        
+//         toast.success(
+//           <div>
+//             <strong>✅ Booking Created Successfully!</strong>
+//             <br />
+//             <span>Room: {selectedRoomDetails?.title}</span>
+//             <br />
+//             <span>From: {new Date(createForm.bookingStartDate).toLocaleDateString()}</span>
+//             <br />
+//             <span>To: {new Date(createForm.bookingEndDate).toLocaleDateString()}</span>
+//           </div>,
+//           {
+//             position: "top-right",
+//             autoClose: 5000,
+//           }
+//         );
+        
+//         setCreateForm({ roomId: '', bookingStartDate: '', bookingEndDate: '' });
+//         fetchAllRooms();
+        
+//         // Auto switch to view tab after 2 seconds
+//         setTimeout(() => {
+//           setActiveTab('view');
+//           if (data.booking?._id) {
+//             setSearchBookingId(data.booking._id);
+//             toast.info('📋 Showing your new booking details', {
+//               position: "top-right",
+//               autoClose: 2000,
+//             });
+//             setTimeout(() => fetchBookingById(data.booking._id), 100);
+//           }
+//         }, 2000);
+//       } else {
+//         toast.error(data.message || 'Failed to create booking', {
+//           position: "top-right",
+//           autoClose: 4000,
+//         });
+//       }
+//     } catch (error) {
+//       toast.dismiss(loadingToast);
+//       toast.error('Network error. Please try again.', {
+//         position: "top-right",
+//         autoClose: 4000,
+//       });
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // 2. GET BOOKING BY ID AND ACTIVE BOOKING CHECK - GET /api/booking/:id AND /api/activebooking/check/:id
+//   const fetchBookingById = async (bookingId = searchBookingId) => {
+//     if (!bookingId) {
+//       toast.warning('Please enter a booking ID', {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//       return;
+//     }
+    
+//     const loadingToast = toast.loading('🔍 Searching for booking...', {
+//       position: "top-right",
+//     });
+    
+//     try {
+//       setLoading(true);
+      
+//       // Fetch booking details
+//       const bookingResponse = await fetch(`${BASE_URL}/booking/${bookingId}`, {
+//         method: 'GET',
+//         headers: getAuthHeaders(),
+//         credentials: 'include'
+//       });
+
+//       const bookingData = await bookingResponse.json();
+//       toast.dismiss(loadingToast);
+
+//       if (bookingResponse.ok) {
+//         setBookingDetails(bookingData.booking);
+        
+//         // Fetch active booking check for bill calculation
+//         fetchActiveBookingCheck(bookingId);
+        
+//         toast.success(
+//           <div>
+//             <strong>✅ Booking Found!</strong>
+//             <br />
+//             <span>Guest: {bookingData.booking.userId?.name}</span>
+//             <br />
+//             <span>Status: {bookingData.booking.bookingCompleted ? 'Completed' : 
+//                           bookingData.booking.isbookingcancel ? 'Cancelled' : 'Active'}</span>
+//           </div>,
+//           {
+//             position: "top-right",
+//             autoClose: 4000,
+//           }
+//         );
+//       } else {
+//         toast.error(bookingData.message || 'Booking not found', {
+//           position: "top-right",
+//           autoClose: 4000,
+//         });
+//         setBookingDetails(null);
+//         setActiveBookingCheck(null);
+//       }
+//     } catch (error) {
+//       toast.dismiss(loadingToast);
+//       toast.error('Error fetching booking details', {
+//         position: "top-right",
+//         autoClose: 4000,
+//       });
+//       setBookingDetails(null);
+//       setActiveBookingCheck(null);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // 2.1 GET ACTIVE BOOKING CHECK - /api/activebooking/check/:bookingId
+//   const fetchActiveBookingCheck = async (bookingId) => {
+//     try {
+//       const response = await fetch(`${BASE_URL}/activebooking/check/${bookingId}`, {
+//         method: 'GET',
+//         headers: getAuthHeaders(),
+//         credentials: 'include'
+//       });
+
+//       const data = await response.json();
+
+//       if (response.ok) {
+//         setActiveBookingCheck(data);
+//         // Auto-populate checkout data with calculated amount
+//         setCheckoutData(prev => ({
+//           ...prev,
+//           bookingId: bookingId,
+//           amount: data.amount.toFixed(2)
+//         }));
+        
+//         toast.info(`💰 Total amount due: $${data.amount.toFixed(2)}`, {
+//           position: "top-right",
+//           autoClose: 5000,
+//         });
+//       } else {
+//         setActiveBookingCheck(null);
+//       }
+//     } catch (error) {
+//       console.error('Error fetching active booking check:', error);
+//       setActiveBookingCheck(null);
+//     }
+//   };
+
+//   // 3. CHECKOUT - PUT /api/booking/checkout/:id
+//   const checkoutBooking = async () => {
+//     if (!checkoutData.bookingId || !checkoutData.amount) {
+//       toast.warning('Please fill all payment details', {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//       return;
+//     }
+
+//     const loadingToast = toast.loading('Processing payment...', {
+//       position: "top-right",
+//     });
+
+//     try {
+//       setLoading(true);
+//       const response = await fetch(`${BASE_URL}/booking/checkout/${checkoutData.bookingId}`, {
+//         method: 'PUT',
+//         headers: getAuthHeaders(),
+//         credentials: 'include',
+//         body: JSON.stringify({
+//           amount: parseFloat(checkoutData.amount),
+//           payment_method: checkoutData.payment_method
+//         })
+//       });
+
+//       const data = await response.json();
+//       toast.dismiss(loadingToast);
+
+//       if (response.ok) {
+//         toast.success(
+//           <div>
+//             <strong>✅ Payment Successful!</strong>
+//             <br />
+//             <span>Amount: ${checkoutData.amount}</span>
+//             <br />
+//             <span>Method: {checkoutData.payment_method}</span>
+//           </div>,
+//           {
+//             position: "top-right",
+//             autoClose: 5000,
+//           }
+//         );
+        
+//         setCheckoutData({ bookingId: '', amount: '', payment_method: 'cash' });
+//         setBookingDetails(null);
+//         setActiveBookingCheck(null);
+//         setSearchBookingId('');
+//         fetchAllRooms();
+//         setActiveTab('create');
+        
+//         toast.info('Redirecting to create booking page...', {
+//           position: "top-right",
+//           autoClose: 2000,
+//         });
+//       } else {
+//         toast.error(data.message || 'Payment failed', {
+//           position: "top-right",
+//           autoClose: 4000,
+//         });
+//       }
+//     } catch (error) {
+//       toast.dismiss(loadingToast);
+//       toast.error('Error processing payment', {
+//         position: "top-right",
+//         autoClose: 4000,
+//       });
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // 4. GET BOOKINGS BY ROOM ID - GET /api/booking/room/:roomId
+//   // const fetchBookingsByRoom = async (roomId) => {
+//   //   if (!roomId) return;
+    
+//   //   const loadingToast = toast.loading('Loading room bookings...', {
+//   //     position: "top-right",
+//   //   });
+    
+//   //   try {
+//   //     setLoading(true);
+//   //     const response = await fetch(`${BASE_URL}/booking/room/${roomId}`, {
+//   //       method: 'GET',
+//   //      headers: {
+//   //       'Authorization': `Bearer ${localStorage.getItem('token')}`, // Make sure the token is saved in localStorage/sessionStorage or cookies
+//   //       'Content-Type': 'application/json'
+//   //   },
+//   //       credentials: 'include'
+//   //     });
+
+//   //     const data = await response.json();
+//   //     toast.dismiss(loadingToast);
+
+//   //     if (response.ok) {
+//   //       setRoomBookings(data.bookings || []);
+//   //       if (data.bookings?.length > 0) {
+//   //         toast.success(`Found ${data.bookings.length} booking(s) for this room`, {
+//   //           position: "top-right",
+//   //           autoClose: 3000,
+//   //         });
+//   //       } else {
+//   //         toast.info('No bookings found for this room', {
+//   //           position: "top-right",
+//   //           autoClose: 3000,
+//   //         });
+//   //       }
+//   //     }
+//   //   } catch (error) {
+//   //     toast.dismiss(loadingToast);
+//   //     console.error('Error fetching room bookings:', error);
+//   //     toast.error('Failed to load room bookings', {
+//   //       position: "top-right",
+//   //       autoClose: 3000,
+//   //     });
+//   //   } finally {
+//   //     setLoading(false);
+//   //   }
+//   // };
+// const fetchBookingsByRoom = async (roomId) => {
+//     if (!roomId) return;
+
+//     const loadingToast = toast.loading('Loading room bookings...', {
+//         position: "top-right",
+//     });
+
+//     try {
+//         setLoading(true);
+//         const response = await fetch(`${BASE_URL}/booking/room/${roomId}`, {
+//             method: 'GET',
+//             headers: {
+//                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
+//                 'Content-Type': 'application/json'
+//             },
+//             credentials: 'include'
+//         });
+
+//         const data = await response.json();
+//         toast.dismiss(loadingToast);
+
+//         if (response.ok) {
+//             if (Array.isArray(data.bookings)) {
+//                 // If bookings is an array, use it as it is
+//                 setRoomBookings(data.bookings || []);
+//                 if (data.bookings?.length > 0) {
+//                     toast.success(`Found ${data.bookings.length} booking(s) for this room`, {
+//                         position: "top-right",
+//                         autoClose: 3000,
+//                     });
+//                 } else {
+//                     toast.info('No bookings found for this room', {
+//                         position: "top-right",
+//                         autoClose: 3000,
+//                     });
+//                 }
+//             } else if (data.booking) {
+//                 // If a single booking is returned, treat it as an array of one booking
+//                 setRoomBookings([data.booking]);
+//                 toast.success('Found 1 booking for this room', {
+//                     position: "top-right",
+//                     autoClose: 3000,
+//                 });
+//             }
+//         }
+//     } catch (error) {
+//         toast.dismiss(loadingToast);
+//         console.error('Error fetching room bookings:', error);
+//         toast.error('Failed to load room bookings', {
+//             position: "top-right",
+//             autoClose: 3000,
+//         });
+//     } finally {
+//         setLoading(false);
+//     }
+// };
+
+//   // 5. CANCEL BOOKING - PUT /api/booking/cancel/:id
+//   const cancelBooking = async (bookingId) => {
+//     // Custom confirmation toast
+//     const cancelConfirm = window.confirm('Are you sure you want to cancel this booking?');
+//     if (!cancelConfirm) return;
+
+//     const loadingToast = toast.loading('Cancelling booking...', {
+//       position: "top-right",
+//     });
+
+//     try {
+//       setLoading(true);
+//       const response = await fetch(`${BASE_URL}/booking/cancel/${bookingId}`, {
+//         method: 'PUT',
+//         headers: getAuthHeaders(),
+//         credentials: 'include'
+//       });
+
+//       const data = await response.json();
+//       toast.dismiss(loadingToast);
+
+//       if (response.ok) {
+//         toast.warning(
+//           <div>
+//             <strong>❌ Booking Cancelled</strong>
+//             <br />
+//             <span>Your booking has been cancelled successfully</span>
+//           </div>,
+//           {
+//             position: "top-right",
+//             autoClose: 4000,
+//           }
+//         );
+//         setBookingDetails(null);
+//         setActiveBookingCheck(null);
+//         setSearchBookingId('');
+//         fetchAllRooms();
+//       } else {
+//         toast.error(data.message || 'Cancellation failed', {
+//           position: "top-right",
+//           autoClose: 4000,
+//         });
+//       }
+//     } catch (error) {
+//       toast.dismiss(loadingToast);
+//       toast.error('Error cancelling booking', {
+//         position: "top-right",
+//         autoClose: 4000,
+//       });
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleCreateInputChange = (e) => {
+//     const { name, value } = e.target;
+//     setCreateForm(prev => ({ ...prev, [name]: value }));
+//   };
+
+//   const handleCheckoutChange = (e) => {
+//     const { name, value } = e.target;
+//     setCheckoutData(prev => ({ ...prev, [name]: value }));
+//   };
+
+//   const formatDate = (dateString) => {
+//     return new Date(dateString).toLocaleDateString('en-US', {
+//       year: 'numeric',
+//       month: 'short',
+//       day: 'numeric',
+//       hour: '2-digit',
+//       minute: '2-digit'
+//     });
+//   };
+
+//   const formatCurrency = (amount) => {
+//     return new Intl.NumberFormat('en-US', {
+//       style: 'currency',
+//       currency: 'USD'
+//     }).format(amount || 0);
+//   };
+
+//   const getStatusBadge = (booking) => {
+//     if (booking.isbookingcancel) {
+//       return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">Cancelled</span>;
+//     }
+//     if (booking.bookingCompleted) {
+//       return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Completed</span>;
+//     }
+//     if (booking.payment_status) {
+//       return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">Confirmed</span>;
+//     }
+//     return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Pending</span>;
+//   };
+
+//   const clearView = () => {
+//     setSearchBookingId('');
+//     setBookingDetails(null);
+//     setActiveBookingCheck(null);
+//     toast.info('Cleared booking view', {
+//       position: "top-right",
+//       autoClose: 2000,
+//     });
+//   };
+
+//   // Function to handle check booking by ID
+//   const handleCheckBooking = () => {
+//     if (!searchBookingId) {
+//       toast.warning('Please enter a booking ID', {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//       return;
+//     }
+//     setActiveTab('view');
+//     fetchBookingById();
+//   };
+
+//   return (
+//     <>
+//       {/* Toast Container */}
+//       <ToastContainer
+//         position="top-right"
+//         autoClose={5000}
+//         hideProgressBar={false}
+//         newestOnTop
+//         closeOnClick
+//         rtl={false}
+//         pauseOnFocusLoss
+//         draggable
+//         pauseOnHover
+//         theme="colored"
+//         limit={5}
+//       />
+      
+//       <div className="max-w-7xl mx-auto px-4 py-6">
+//         {/* Header */}
+//         <div className="flex items-center justify-between mb-6">
+//           <h1 className="text-2xl font-semibold text-slate-800">Bookings Management</h1>
+//           <button
+//             onClick={() => {
+//               toast(
+//                 <div>
+//                   <strong>ℹ️ Quick Tips</strong>
+//                   <br />
+//                   • Use the blue buttons to navigate
+//                   <br />
+//                   • Enter Booking ID to view details
+//                   <br />
+//                   • Green button for payments
+//                 </div>,
+//                 {
+//                   position: "top-right",
+//                   autoClose: 8000,
+//                   closeButton: true,
+//                 }
+//               );
+//             }}
+//             className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-sm hover:bg-slate-200 transition-colors flex items-center gap-1"
+//           >
+//             <span className="material-icons text-sm">help</span>
+//             Help
+//           </button>
+//         </div>
+
+//         {/* VISIBLE COLORFUL ACTION BUTTONS */}
+//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+//           {/* Create Booking Button - BLUE */}
+//           <button
+//             onClick={() => {
+//               setActiveTab('create');
+//               toast.info('📝 Create a new booking', {
+//                 position: "top-right",
+//                 autoClose: 2000,
+//               });
+//             }}
+//             className={`p-6 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 group ${
+//               activeTab === 'create'
+//                 ? 'bg-blue-600 border-blue-600 shadow-lg'
+//                 : 'bg-white border-blue-500 hover:bg-blue-50 hover:border-blue-600 hover:shadow-lg'
+//             }`}
+//           >
+//             <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-200 ${
+//               activeTab === 'create'
+//                 ? 'bg-white scale-110'
+//                 : 'bg-blue-100 group-hover:bg-blue-600 group-hover:scale-110'
+//             }`}>
+//               <span className={`material-icons text-3xl ${
+//                 activeTab === 'create' ? 'text-blue-600' : 'text-blue-600 group-hover:text-white'
+//               }`}>add_circle</span>
+//             </div>
+//             <div className="text-left flex-1">
+//               <h3 className={`text-lg font-semibold transition-colors ${
+//                 activeTab === 'create' ? 'text-white' : 'text-slate-800 group-hover:text-blue-700'
+//               }`}>Create New Booking</h3>
+//               <p className={`text-sm ${
+//                 activeTab === 'create' ? 'text-blue-100' : 'text-slate-500 group-hover:text-blue-600'
+//               }`}>Book a room for your stay</p>
+//             </div>
+//             {activeTab === 'create' && (
+//               <span className="bg-white text-blue-600 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm">
+//                 Active
+//               </span>
+//             )}
+//             <span className={`material-icons ${
+//               activeTab === 'create' ? 'text-white translate-x-1' : 'text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1'
+//             } transition-transform`}>arrow_forward</span>
+//           </button>
+
+//           {/* View Booking & Bill Button - GREEN */}
+//           <button
+//             onClick={() => {
+//               setActiveTab('view');
+//               toast.info('📋 View booking details and bills', {
+//                 position: "top-right",
+//                 autoClose: 2000,
+//               });
+//             }}
+//             className={`p-6 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 group ${
+//               activeTab === 'view'
+//                 ? 'bg-emerald-600 border-emerald-600 shadow-lg'
+//                 : 'bg-white border-emerald-500 hover:bg-emerald-50 hover:border-emerald-600 hover:shadow-lg'
+//             }`}
+//           >
+//             <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-200 ${
+//               activeTab === 'view'
+//                 ? 'bg-white scale-110'
+//                 : 'bg-emerald-100 group-hover:bg-emerald-600 group-hover:scale-110'
+//             }`}>
+//               <span className={`material-icons text-3xl ${
+//                 activeTab === 'view' ? 'text-emerald-600' : 'text-emerald-600 group-hover:text-white'
+//               }`}>receipt</span>
+//             </div>
+//             <div className="text-left flex-1">
+//               <h3 className={`text-lg font-semibold transition-colors ${
+//                 activeTab === 'view' ? 'text-white' : 'text-slate-800 group-hover:text-emerald-700'
+//               }`}>View Booking & Bill</h3>
+//               <p className={`text-sm ${
+//                 activeTab === 'view' ? 'text-emerald-100' : 'text-slate-500 group-hover:text-emerald-600'
+//               }`}>Check booking details and payment</p>
+//             </div>
+//             {activeTab === 'view' && (
+//               <span className="bg-white text-emerald-600 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm">
+//                 Active
+//               </span>
+//             )}
+//             <span className={`material-icons ${
+//               activeTab === 'view' ? 'text-white translate-x-1' : 'text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1'
+//             } transition-transform`}>arrow_forward</span>
+//           </button>
+//         </div>
+
+//         {/* Quick Check Booking by ID - BLUE */}
+//         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-5 mb-8">
+//           <div className="flex flex-col md:flex-row items-center gap-4">
+//             <div className="flex items-center gap-3">
+//               <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-md">
+//                 <span className="material-icons text-blue-600">search</span>
+//               </div>
+//               <div>
+//                 <h3 className="font-semibold text-white">Quick Booking Lookup</h3>
+//                 <p className="text-xs text-blue-100">Enter booking ID to view details</p>
+//               </div>
+//             </div>
+//             <div className="flex-1 relative">
+//               <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">fingerprint</span>
+//               <input
+//                 type="text"
+//                 placeholder="Enter Booking ID (e.g. 698ed232b46aa278e6f9449b)"
+//                 className="w-full pl-10 pr-4 py-3 bg-white border-0 rounded-lg text-sm focus:ring-2 focus:ring-white/50 outline-none shadow-md"
+//                 value={searchBookingId}
+//                 onChange={(e) => setSearchBookingId(e.target.value)}
+//               />
+//             </div>
+//             <button
+//               onClick={handleCheckBooking}
+//               disabled={loading}
+//               className="px-6 py-3 bg-white text-blue-700 rounded-lg text-sm font-bold hover:bg-blue-50 transition-colors flex items-center gap-2 whitespace-nowrap shadow-lg hover:shadow-xl"
+//             >
+//               <span className="material-icons text-sm">visibility</span>
+//               Check Booking
+//             </button>
+//           </div>
+//         </div>
+
+//         {/* Tabs */}
+//         {/* <div className="border-b border-slate-200 mb-6 overflow-x-auto">
+//           <nav className="flex gap-6 min-w-max">
+//             <button
+//               onClick={() => setActiveTab('create')}
+//               className={`pb-3 px-1 text-sm font-medium transition-colors relative ${
+//                 activeTab === 'create'
+//                   ? 'text-blue-600 border-b-2 border-blue-600'
+//                   : 'text-slate-500 hover:text-slate-700'
+//               }`}
+//             >
+//               Create Booking
+//             </button>
+//             <button
+//               onClick={() => setActiveTab('view')}
+//               className={`pb-3 px-1 text-sm font-medium transition-colors relative ${
+//                 activeTab === 'view'
+//                   ? 'text-emerald-600 border-b-2 border-emerald-600'
+//                   : 'text-slate-500 hover:text-slate-700'
+//               }`}
+//             >
+//               View Booking
+//             </button>
+//             <button
+//               onClick={() => setActiveTab('room')}
+//               className={`pb-3 px-1 text-sm font-medium transition-colors ${
+//                 activeTab === 'room'
+//                   ? 'text-blue-600 border-b-2 border-blue-600'
+//                   : 'text-slate-500 hover:text-slate-700'
+//               }`}
+//             >
+//               Room Bookings
+//             </button>
+//           </nav>
+//         </div> */}
+// {/* Tabs */}
+// <div className="border-b border-slate-200 mb-6 overflow-x-auto">
+//   <nav className="flex gap-6 min-w-max">
+//     <button
+//       onClick={() => setActiveTab('create')}
+//       className={`pb-3 px-1 text-sm font-medium transition-colors relative ${
+//         activeTab === 'create'
+//           ? 'text-blue-600 border-b-2 border-blue-600'
+//           : 'text-slate-500 hover:text-slate-700'
+//       }`}
+//     >
+//       Create Booking
+//     </button>
+//     <button
+//       onClick={() => setActiveTab('view')}
+//       className={`pb-3 px-1 text-sm font-medium transition-colors relative ${
+//         activeTab === 'view'
+//           ? 'text-emerald-600 border-b-2 border-emerald-600'
+//           : 'text-slate-500 hover:text-slate-700'
+//       }`}
+//     >
+//       View Booking
+//     </button>
+    
+//     {/* Room Bookings - Only show for owners and admins, completely hidden for users */}
+//     {(user.role === 'owner' || user.role === 'admin') && (
+//       <button
+//         onClick={() => setActiveTab('room')}
+//         className={`pb-3 px-1 text-sm font-medium transition-colors ${
+//           activeTab === 'room'
+//             ? 'text-blue-600 border-b-2 border-blue-600'
+//             : 'text-slate-500 hover:text-slate-700'
+//         }`}
+//       >
+//         Room Bookings
+//       </button>
+//     )}
+//   </nav>
+// </div>
+
+
+//         {/* CREATE BOOKING TAB */}
+//         {activeTab === 'create' && (
+//           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+//             <div className="flex items-center gap-2 mb-4">
+//               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+//                 <span className="material-icons text-blue-600">add_circle</span>
+//               </div>
+//               <h2 className="text-lg font-semibold text-slate-800">Create New Booking</h2>
+//             </div>
+            
+//             <form onSubmit={createBooking} className="space-y-4 max-w-2xl">
+//               <div>
+//                 <label className="block text-sm font-medium text-slate-700 mb-1">
+//                   Select Room <span className="text-red-500">*</span>
+//                 </label>
+//                 <select
+//                   name="roomId"
+//                   value={createForm.roomId}
+//                   onChange={handleCreateInputChange}
+//                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+//                   required
+//                 >
+//                   <option value="">Choose a room...</option>
+//                   {rooms.filter(room => room.isAvailable).map((room) => (
+//                     <option key={room._id} value={room._id}>
+//                       {room.title} - {formatCurrency(room.pricePerDay)}/night - {room.roomSize}m² - {room.noOfBeds} bed(s)
+//                     </option>
+//                   ))}
+//                 </select>
+//                 {rooms.filter(room => room.isAvailable).length === 0 && (
+//                   <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+//                     <span className="material-icons text-amber-600 text-xs">info</span>
+//                     No rooms available at the moment.
+//                   </p>
+//                 )}
+//               </div>
+
+//               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//                 <div>
+//                   <label className="block text-sm font-medium text-slate-700 mb-1">
+//                     Check-in Date <span className="text-red-500">*</span>
+//                   </label>
+//                   <input
+//                     type="datetime-local"
+//                     name="bookingStartDate"
+//                     value={createForm.bookingStartDate}
+//                     onChange={handleCreateInputChange}
+//                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+//                     required
+//                   />
+//                 </div>
+//                 <div>
+//                   <label className="block text-sm font-medium text-slate-700 mb-1">
+//                     Check-out Date <span className="text-red-500">*</span>
+//                   </label>
+//                   <input
+//                     type="datetime-local"
+//                     name="bookingEndDate"
+//                     value={createForm.bookingEndDate}
+//                     onChange={handleCreateInputChange}
+//                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+//                     required
+//                   />
+//                 </div>
+//               </div>
+
+//               {/* VISIBLE BLUE CREATE BOOKING BUTTON */}
+//               <div className="pt-6 border-t border-slate-100">
+//                 <button
+//                   type="submit"
+//                   disabled={loading || !createForm.roomId || !createForm.bookingStartDate || !createForm.bookingEndDate}
+//                   className="w-full md:w-auto px-8 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 group"
+//                 >
+//                   {loading ? (
+//                     <>
+//                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+//                       <span>Creating Booking...</span>
+//                     </>
+//                   ) : (
+//                     <>
+//                       <span className="material-icons text-white group-hover:scale-110 transition-transform">booking</span>
+//                       <span className="font-semibold text-base">CREATE BOOKING</span>
+//                       <span className="material-icons text-white/80 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+//                     </>
+//                   )}
+//                 </button>
+                
+//                 {/* Form Status Messages */}
+//                 {!createForm.roomId && (
+//                   <p className="text-xs text-amber-600 mt-3 flex items-center gap-1">
+//                     <span className="material-icons text-amber-600 text-xs">info</span>
+//                     Please select a room to continue
+//                   </p>
+//                 )}
+//                 {createForm.roomId && (!createForm.bookingStartDate || !createForm.bookingEndDate) && (
+//                   <p className="text-xs text-amber-600 mt-3 flex items-center gap-1">
+//                     <span className="material-icons text-amber-600 text-xs">info</span>
+//                     Please select check-in and check-out dates
+//                   </p>
+//                 )}
+//                 {createForm.roomId && createForm.bookingStartDate && createForm.bookingEndDate && (
+//                   <p className="text-xs text-green-600 mt-3 flex items-center gap-1">
+//                     <span className="material-icons text-green-600 text-xs">check_circle</span>
+//                     Ready to create booking! Click the blue button above.
+//                   </p>
+//                 )}
+//               </div>
+//             </form>
+
+//             {/* Quick Tips - BLUE */}
+//             <div className="mt-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
+//               <h4 className="text-xs font-semibold text-blue-800 uppercase tracking-wider mb-2 flex items-center gap-1">
+//                 <span className="material-icons text-blue-600 text-sm">tips_and_updates</span>
+//                 Booking Tips
+//               </h4>
+//               <ul className="text-xs text-blue-700 space-y-1">
+//                 <li className="flex items-center gap-2">
+//                   <span className="w-1 h-1 bg-blue-400 rounded-full"></span>
+//                   Make sure to select available rooms only (marked with price)
+//                 </li>
+//                 <li className="flex items-center gap-2">
+//                   <span className="w-1 h-1 bg-blue-400 rounded-full"></span>
+//                   Check-in and check-out times are in 24-hour format
+//                 </li>
+//                 <li className="flex items-center gap-2">
+//                   <span className="w-1 h-1 bg-blue-400 rounded-full"></span>
+//                   After creation, you'll be redirected to view booking details
+//                 </li>
+//               </ul>
+//             </div>
+//           </div>
+//         )}
+
+//         {/* VIEW BOOKING TAB */}
+//         {activeTab === 'view' && (
+//           <div className="space-y-6">
+//             <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+//               <div className="flex items-center gap-2 mb-4">
+//                 <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+//                   <span className="material-icons text-emerald-600">receipt</span>
+//                 </div>
+//                 <h2 className="text-lg font-semibold text-slate-800">View Booking & Bill</h2>
+//               </div>
+              
+//               <div className="flex flex-col md:flex-row gap-4 mb-6">
+//                 <div className="flex-1 relative">
+//                   <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+//                   <input
+//                     type="text"
+//                     placeholder="Enter Booking ID"
+//                     className="w-full pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+//                     value={searchBookingId}
+//                     onChange={(e) => setSearchBookingId(e.target.value)}
+//                   />
+//                 </div>
+//                 <div className="flex gap-2">
+//                   <button
+//                     onClick={() => fetchBookingById()}
+//                     disabled={loading}
+//                     className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors flex items-center gap-1 shadow-md"
+//                   >
+//                     <span className="material-icons text-sm">search</span>
+//                     Search
+//                   </button>
+//                   {bookingDetails && (
+//                     <button
+//                       onClick={clearView}
+//                       className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
+//                     >
+//                       Clear
+//                     </button>
+//                   )}
+//                 </div>
+//               </div>
+
+//               {bookingDetails && (
+//                 <div className="space-y-6">
+//                   {/* Booking Details */}
+//                   <div className="bg-slate-50 p-6 rounded-lg border border-slate-200">
+//                     <div className="flex justify-between items-start mb-4">
+//                       <div>
+//                         <p className="text-xs text-slate-500">Booking ID</p>
+//                         <p className="text-lg font-semibold text-blue-600 font-mono">#{bookingDetails._id.slice(-8)}</p>
+//                         <p className="text-xs text-slate-400 mt-1 font-mono">{bookingDetails._id}</p>
+//                       </div>
+//                       {getStatusBadge(bookingDetails)}
+//                     </div>
+                    
+//                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//                       <div className="space-y-3">
+//                         <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Guest Information</h4>
+//                         <div>
+//                           <p className="font-medium text-slate-800">{bookingDetails.userId?.name}</p>
+//                           <p className="text-xs text-slate-500">{bookingDetails.userId?.email}</p>
+//                         </div>
+//                       </div>
+                      
+//                       <div className="space-y-3">
+//                         <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Room Information</h4>
+//                         <div>
+//                           <p className="font-medium text-slate-800">{bookingDetails.roomId?.title}</p>
+//                           <p className="text-xs text-slate-500">{bookingDetails.roomId?.description}</p>
+//                           <p className="text-xs text-slate-500 mt-1">
+//                             {bookingDetails.roomId?.roomSize}m² • {bookingDetails.roomId?.noOfBeds} bed(s) • Max {bookingDetails.roomId?.maxOccupancy} guests
+//                           </p>
+//                         </div>
+//                       </div>
+                      
+//                       <div className="space-y-3">
+//                         <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Booking Timeline</h4>
+//                         <div className="space-y-1">
+//                           <p className="text-sm"><span className="text-slate-500">Check-in:</span> {formatDate(bookingDetails.bookingStartDate)}</p>
+//                           <p className="text-sm"><span className="text-slate-500">Check-out:</span> {formatDate(bookingDetails.bookingEndDate)}</p>
+//                           {bookingDetails.checkIn && (
+//                             <p className="text-sm"><span className="text-slate-500">Actual Check-in:</span> {formatDate(bookingDetails.checkIn)}</p>
+//                           )}
+//                           {bookingDetails.checkOut && (
+//                             <p className="text-sm"><span className="text-slate-500">Actual Check-out:</span> {formatDate(bookingDetails.checkOut)}</p>
+//                           )}
+//                         </div>
+//                       </div>
+                      
+//                       <div className="space-y-3">
+//                         <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Payment Details</h4>
+//                         <div className="space-y-1">
+//                           <p className="text-sm">
+//                             <span className="text-slate-500">Amount:</span>{' '}
+//                             <span className="font-semibold text-slate-800">{formatCurrency(bookingDetails.amount)}</span>
+//                           </p>
+//                           <p className="text-sm">
+//                             <span className="text-slate-500">Payment Status:</span>{' '}
+//                             <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+//                               bookingDetails.payment_status ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+//                             }`}>
+//                               {bookingDetails.payment_status ? 'Paid' : 'Pending'}
+//                             </span>
+//                           </p>
+//                         </div>
+//                       </div>
+//                     </div>
+//                   </div>
+
+//                   {/* Active Booking Check - Bill Details */}
+//                   {activeBookingCheck && !bookingDetails.bookingCompleted && !bookingDetails.isbookingcancel && (
+//                     <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+//                       <h4 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-2">
+//                         <span className="material-icons text-blue-600 text-sm">receipt</span>
+//                         Current Booking Summary
+//                       </h4>
+                      
+//                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+//                         <div className="bg-white p-3 rounded-lg border border-blue-100">
+//                           <p className="text-xs text-slate-500">Total Hours</p>
+//                           <p className="text-xl font-bold text-blue-700">{activeBookingCheck.totalHours.toFixed(1)} hrs</p>
+//                         </div>
+//                         <div className="bg-white p-3 rounded-lg border border-blue-100">
+//                           <p className="text-xs text-slate-500">Total Days</p>
+//                           <p className="text-xl font-bold text-blue-700">{activeBookingCheck.totalDays} days</p>
+//                         </div>
+//                         <div className="bg-white p-3 rounded-lg border border-blue-100">
+//                           <p className="text-xs text-slate-500">Amount Due</p>
+//                           <p className="text-xl font-bold text-blue-700">{formatCurrency(activeBookingCheck.amount)}</p>
+//                         </div>
+//                       </div>
+
+//                       <div className="flex flex-col sm:flex-row gap-3 mt-4">
+//                         <button
+//                           onClick={checkoutBooking}
+//                           disabled={loading}
+//                           className="px-6 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-md"
+//                         >
+//                           {loading ? (
+//                             <>
+//                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+//                               Processing...
+//                             </>
+//                           ) : (
+//                             <>
+//                               <span className="material-icons text-sm">payment</span>
+//                               CHECKOUT NOW
+//                             </>
+//                           )}
+//                         </button>
+//                         <button
+//                           onClick={() => cancelBooking(bookingDetails._id)}
+//                           className="px-6 py-2.5 border border-rose-200 text-rose-600 rounded-lg text-sm font-medium hover:bg-rose-50 transition-colors flex items-center justify-center gap-2"
+//                         >
+//                           <span className="material-icons text-sm">cancel</span>
+//                           Cancel Booking
+//                         </button>
+//                       </div>
+//                     </div>
+//                   )}
+
+//                   {!bookingDetails.bookingCompleted && !bookingDetails.isbookingcancel && !activeBookingCheck && (
+//                     <div className="flex gap-3">
+//                       <button
+//                         onClick={() => cancelBooking(bookingDetails._id)}
+//                         className="px-6 py-2.5 border border-rose-200 text-rose-600 rounded-lg text-sm font-medium hover:bg-rose-50 transition-colors flex items-center justify-center gap-2"
+//                       >
+//                         <span className="material-icons text-sm">cancel</span>
+//                         Cancel Booking
+//                       </button>
+//                     </div>
+//                   )}
+
+//                   {bookingDetails.bookingCompleted && (
+//                     <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200 flex items-center gap-2">
+//                       <span className="material-icons text-emerald-600">check_circle</span>
+//                       <span className="text-sm text-emerald-700">This booking has been completed successfully.</span>
+//                     </div>
+//                   )}
+
+//                   {bookingDetails.isbookingcancel && (
+//                     <div className="bg-rose-50 p-4 rounded-lg border border-rose-200 flex items-center gap-2">
+//                       <span className="material-icons text-rose-600">cancel</span>
+//                       <span className="text-sm text-rose-700">This booking has been cancelled.</span>
+//                     </div>
+//                   )}
+//                 </div>
+//               )}
+//             </div>
+//           </div>
+//         )}
+
+//         {/* ROOM BOOKINGS TAB */}
+//         {activeTab === 'room' && (
+//           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+//             <div className="flex items-center gap-2 mb-4">
+//               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+//                 <span className="material-icons text-blue-600">meeting_room</span>
+//               </div>
+//               <h2 className="text-lg font-semibold text-slate-800">Bookings by Room</h2>
+//             </div>
+            
+//             <div className="flex flex-col md:flex-row gap-4 mb-6">
+//               <select
+//                 className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+//                 value={selectedRoom}
+//                 onChange={(e) => {
+//                   setSelectedRoom(e.target.value);
+//                   fetchBookingsByRoom(e.target.value);
+//                 }}
+//               >
+//                 <option value="">Select a room...</option>
+//                 {rooms.map((room) => (
+//                   <option key={room._id} value={room._id}>
+//                     {room.title} - {room.isAvailable ? 'Available' : 'Booked'} - {formatCurrency(room.pricePerDay)}/night
+//                   </option>
+//                 ))}
+//               </select>
+//             </div>
+
+//             {roomBookings.length > 0 ? (
+//               <div className="space-y-3">
+//                 {roomBookings.map((booking) => (
+//                   <div key={booking._id} className="bg-slate-50 p-4 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors">
+//                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+//                       <div className="flex-1">
+//                         <div className="flex items-center gap-2 mb-2">
+//                           <span className="text-xs font-mono text-blue-600 bg-blue-100 px-2 py-1 rounded">
+//                             #{booking._id.slice(-8)}
+//                           </span>
+//                           {getStatusBadge(booking)}
+//                         </div>
+//                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+//                           <div>
+//                             <p className="text-sm font-medium text-slate-800">Guest: {booking.userId?.name}</p>
+//                             <p className="text-xs text-slate-500 mt-1">
+//                               {formatDate(booking.bookingStartDate)} - {formatDate(booking.bookingEndDate)}
+//                             </p>
+//                           </div>
+//                           <div className="md:text-right">
+//                             {booking.amount && (
+//                               <p className="text-sm font-semibold text-slate-800">
+//                                 {formatCurrency(booking.amount)}
+//                               </p>
+//                             )}
+//                           </div>
+//                         </div>
+//                       </div>
+//                       <button
+//                         onClick={() => {
+//                           setActiveTab('view');
+//                           setSearchBookingId(booking._id);
+//                           toast.info('Loading booking details...', {
+//                             position: "top-right",
+//                             autoClose: 2000,
+//                           });
+//                           setTimeout(() => fetchBookingById(booking._id), 100);
+//                         }}
+//                         className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1 self-start shadow-sm"
+//                       >
+//                         <span className="material-icons text-sm">visibility</span>
+//                         View Details
+//                       </button>
+//                     </div>
+//                   </div>
+//                 ))}
+//               </div>
+//             ) : selectedRoom ? (
+//               <div className="text-center py-8 bg-slate-50 rounded-lg border border-slate-200">
+//                 <span className="material-icons text-4xl text-slate-300 mb-2">history</span>
+//                 <p className="text-slate-500">No bookings found for this room.</p>
+//               </div>
+//             ) : null}
+//           </div>
+//         )}
+//       </div>
+//     </>
+//   );
+// };
+
+// export default Bookings;
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useState, useEffect } from 'react';
+// import Cookies from 'js-cookie';
+// import 'material-icons/iconfont/material-icons.css';
+// import { toast, ToastContainer } from 'react-toastify';
+// import 'react-toastify/dist/ReactToastify.css';
+
+// const Bookings = () => {
+//   const [activeTab, setActiveTab] = useState('create');
+//   const [loading, setLoading] = useState(false);
 //   const [user, setUser] = useState({});
   
 //   // Bookings data
@@ -64,6 +1300,10 @@
 //       }
 //     } catch (error) {
 //       console.error('Error fetching rooms:', error);
+//       toast.error('Failed to load rooms', {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
 //     }
 //   };
 
@@ -71,7 +1311,23 @@
 //   const createBooking = async (e) => {
 //     e.preventDefault();
 //     setLoading(true);
-//     setMessage({ type: '', text: '' });
+
+//     // Validate dates
+//     const startDate = new Date(createForm.bookingStartDate);
+//     const endDate = new Date(createForm.bookingEndDate);
+    
+//     if (endDate <= startDate) {
+//       toast.error('Check-out date must be after check-in date', {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//       setLoading(false);
+//       return;
+//     }
+
+//     const loadingToast = toast.loading('Creating your booking...', {
+//       position: "top-right",
+//     });
 
 //     try {
 //       const response = await fetch(`${BASE_URL}/booking/create`, {
@@ -87,12 +1343,27 @@
 //       });
 
 //       const data = await response.json();
+//       toast.dismiss(loadingToast);
 
 //       if (response.ok) {
-//         setMessage({ 
-//           type: 'success', 
-//           text: '✅ Booking created successfully! Room has been booked.' 
-//         });
+//         const selectedRoomDetails = rooms.find(r => r._id === createForm.roomId);
+        
+//         toast.success(
+//           <div>
+//             <strong>✅ Booking Created Successfully!</strong>
+//             <br />
+//             <span>Room: {selectedRoomDetails?.title}</span>
+//             <br />
+//             <span>From: {new Date(createForm.bookingStartDate).toLocaleDateString()}</span>
+//             <br />
+//             <span>To: {new Date(createForm.bookingEndDate).toLocaleDateString()}</span>
+//           </div>,
+//           {
+//             position: "top-right",
+//             autoClose: 5000,
+//           }
+//         );
+        
 //         setCreateForm({ roomId: '', bookingStartDate: '', bookingEndDate: '' });
 //         fetchAllRooms();
         
@@ -101,14 +1372,25 @@
 //           setActiveTab('view');
 //           if (data.booking?._id) {
 //             setSearchBookingId(data.booking._id);
+//             toast.info('📋 Showing your new booking details', {
+//               position: "top-right",
+//               autoClose: 2000,
+//             });
 //             setTimeout(() => fetchBookingById(data.booking._id), 100);
 //           }
 //         }, 2000);
 //       } else {
-//         setMessage({ type: 'error', text: data.message || 'Failed to create booking' });
+//         toast.error(data.message || 'Failed to create booking', {
+//           position: "top-right",
+//           autoClose: 4000,
+//         });
 //       }
 //     } catch (error) {
-//       setMessage({ type: 'error', text: 'Something went wrong' });
+//       toast.dismiss(loadingToast);
+//       toast.error('Network error. Please try again.', {
+//         position: "top-right",
+//         autoClose: 4000,
+//       });
 //     } finally {
 //       setLoading(false);
 //     }
@@ -117,13 +1399,19 @@
 //   // 2. GET BOOKING BY ID AND ACTIVE BOOKING CHECK - GET /api/booking/:id AND /api/activebooking/check/:id
 //   const fetchBookingById = async (bookingId = searchBookingId) => {
 //     if (!bookingId) {
-//       setMessage({ type: 'error', text: 'Please enter a booking ID' });
+//       toast.warning('Please enter a booking ID', {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
 //       return;
 //     }
     
+//     const loadingToast = toast.loading('🔍 Searching for booking...', {
+//       position: "top-right",
+//     });
+    
 //     try {
 //       setLoading(true);
-//       setMessage({ type: '', text: '' });
       
 //       // Fetch booking details
 //       const bookingResponse = await fetch(`${BASE_URL}/booking/${bookingId}`, {
@@ -133,25 +1421,46 @@
 //       });
 
 //       const bookingData = await bookingResponse.json();
+//       toast.dismiss(loadingToast);
 
 //       if (bookingResponse.ok) {
 //         setBookingDetails(bookingData.booking);
         
 //         // Fetch active booking check for bill calculation
 //         fetchActiveBookingCheck(bookingId);
-//         setMessage({ type: 'success', text: 'Booking fetched successfully' });
+        
+//         toast.success(
+//           <div>
+//             <strong>✅ Booking Found!</strong>
+//             <br />
+//             <span>Guest: {bookingData.booking.userId?.name}</span>
+//             <br />
+//             <span>Status: {bookingData.booking.bookingCompleted ? 'Completed' : 
+//                           bookingData.booking.isbookingcancel ? 'Cancelled' : 'Active'}</span>
+//           </div>,
+//           {
+//             position: "top-right",
+//             autoClose: 4000,
+//           }
+//         );
 //       } else {
-//         setMessage({ type: 'error', text: bookingData.message || 'Booking not found' });
+//         toast.error(bookingData.message || 'Booking not found', {
+//           position: "top-right",
+//           autoClose: 4000,
+//         });
 //         setBookingDetails(null);
 //         setActiveBookingCheck(null);
 //       }
 //     } catch (error) {
-//       setMessage({ type: 'error', text: 'Error fetching booking' });
+//       toast.dismiss(loadingToast);
+//       toast.error('Error fetching booking details', {
+//         position: "top-right",
+//         autoClose: 4000,
+//       });
 //       setBookingDetails(null);
 //       setActiveBookingCheck(null);
 //     } finally {
 //       setLoading(false);
-//       setTimeout(() => setMessage({ type: '', text: '' }), 3000);
 //     }
 //   };
 
@@ -168,12 +1477,23 @@
 
 //       if (response.ok) {
 //         setActiveBookingCheck(data);
-//         // Auto-populate checkout data with calculated amount
+        
+//         // Calculate amount after deducting advance
+//         let finalAmount = data.amount;
+//         if (bookingDetails?.advance > 0) {
+//           finalAmount = data.amount - bookingDetails.advance;
+//         }
+        
 //         setCheckoutData(prev => ({
 //           ...prev,
 //           bookingId: bookingId,
-//           amount: data.amount.toFixed(2)
+//           amount: finalAmount.toFixed(2)
 //         }));
+        
+//         toast.info(`💰 Total amount due: $${finalAmount.toFixed(2)}`, {
+//           position: "top-right",
+//           autoClose: 5000,
+//         });
 //       } else {
 //         setActiveBookingCheck(null);
 //       }
@@ -186,9 +1506,16 @@
 //   // 3. CHECKOUT - PUT /api/booking/checkout/:id
 //   const checkoutBooking = async () => {
 //     if (!checkoutData.bookingId || !checkoutData.amount) {
-//       setMessage({ type: 'error', text: 'Please fill all fields' });
+//       toast.warning('Please fill all payment details', {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
 //       return;
 //     }
+
+//     const loadingToast = toast.loading('Processing payment...', {
+//       position: "top-right",
+//     });
 
 //     try {
 //       setLoading(true);
@@ -203,52 +1530,118 @@
 //       });
 
 //       const data = await response.json();
+//       toast.dismiss(loadingToast);
 
 //       if (response.ok) {
-//         setMessage({ type: 'success', text: '✅ Checkout completed successfully!' });
+//         toast.success(
+//           <div>
+//             <strong>✅ Payment Successful!</strong>
+//             <br />
+//             <span>Amount: ${checkoutData.amount}</span>
+//             <br />
+//             <span>Method: {checkoutData.payment_method}</span>
+//             {bookingDetails?.advance > 0 && (
+//               <>
+//                 <br />
+//                 <span className="text-xs">(Advance paid: ${bookingDetails.advance})</span>
+//               </>
+//             )}
+//           </div>,
+//           {
+//             position: "top-right",
+//             autoClose: 5000,
+//           }
+//         );
+        
 //         setCheckoutData({ bookingId: '', amount: '', payment_method: 'cash' });
 //         setBookingDetails(null);
 //         setActiveBookingCheck(null);
 //         setSearchBookingId('');
 //         fetchAllRooms();
 //         setActiveTab('create');
+        
+//         toast.info('Redirecting to create booking page...', {
+//           position: "top-right",
+//           autoClose: 2000,
+//         });
 //       } else {
-//         setMessage({ type: 'error', text: data.message || 'Checkout failed' });
+//         toast.error(data.message || 'Payment failed', {
+//           position: "top-right",
+//           autoClose: 4000,
+//         });
 //       }
 //     } catch (error) {
-//       setMessage({ type: 'error', text: 'Error during checkout' });
+//       toast.dismiss(loadingToast);
+//       toast.error('Error processing payment', {
+//         position: "top-right",
+//         autoClose: 4000,
+//       });
 //     } finally {
 //       setLoading(false);
-//       setTimeout(() => setMessage({ type: '', text: '' }), 3000);
 //     }
 //   };
 
 //   // 4. GET BOOKINGS BY ROOM ID - GET /api/booking/room/:roomId
 //   const fetchBookingsByRoom = async (roomId) => {
 //     if (!roomId) return;
+
+//     const loadingToast = toast.loading('Loading room bookings...', {
+//         position: "top-right",
+//     });
+
 //     try {
-//       setLoading(true);
-//       const response = await fetch(`${BASE_URL}/booking/room/${roomId}`, {
-//         method: 'GET',
-//         headers: getAuthHeaders(),
-//         credentials: 'include'
-//       });
+//         setLoading(true);
+//         const response = await fetch(`${BASE_URL}/booking/room/${roomId}`, {
+//             method: 'GET',
+//             headers: getAuthHeaders(),
+//             credentials: 'include'
+//         });
 
-//       const data = await response.json();
+//         const data = await response.json();
+//         toast.dismiss(loadingToast);
 
-//       if (response.ok) {
-//         setRoomBookings(data.bookings || []);
-//       }
+//         if (response.ok) {
+//             if (Array.isArray(data.bookings)) {
+//                 setRoomBookings(data.bookings || []);
+//                 if (data.bookings?.length > 0) {
+//                     toast.success(`Found ${data.bookings.length} booking(s) for this room`, {
+//                         position: "top-right",
+//                         autoClose: 3000,
+//                     });
+//                 } else {
+//                     toast.info('No bookings found for this room', {
+//                         position: "top-right",
+//                         autoClose: 3000,
+//                     });
+//                 }
+//             } else if (data.booking) {
+//                 setRoomBookings([data.booking]);
+//                 toast.success('Found 1 booking for this room', {
+//                     position: "top-right",
+//                     autoClose: 3000,
+//                 });
+//             }
+//         }
 //     } catch (error) {
-//       console.error('Error fetching room bookings:', error);
+//         toast.dismiss(loadingToast);
+//         console.error('Error fetching room bookings:', error);
+//         toast.error('Failed to load room bookings', {
+//             position: "top-right",
+//             autoClose: 3000,
+//         });
 //     } finally {
-//       setLoading(false);
+//         setLoading(false);
 //     }
-//   };
+// };
 
 //   // 5. CANCEL BOOKING - PUT /api/booking/cancel/:id
 //   const cancelBooking = async (bookingId) => {
-//     if (!window.confirm('Are you sure you want to cancel this booking?')) return;
+//     const cancelConfirm = window.confirm('Are you sure you want to cancel this booking?');
+//     if (!cancelConfirm) return;
+
+//     const loadingToast = toast.loading('Cancelling booking...', {
+//       position: "top-right",
+//     });
 
 //     try {
 //       setLoading(true);
@@ -259,21 +1652,38 @@
 //       });
 
 //       const data = await response.json();
+//       toast.dismiss(loadingToast);
 
 //       if (response.ok) {
-//         setMessage({ type: 'success', text: '✅ Booking cancelled successfully' });
+//         toast.warning(
+//           <div>
+//             <strong>❌ Booking Cancelled</strong>
+//             <br />
+//             <span>Your booking has been cancelled successfully</span>
+//           </div>,
+//           {
+//             position: "top-right",
+//             autoClose: 4000,
+//           }
+//         );
 //         setBookingDetails(null);
 //         setActiveBookingCheck(null);
 //         setSearchBookingId('');
 //         fetchAllRooms();
 //       } else {
-//         setMessage({ type: 'error', text: data.message || 'Cancellation failed' });
+//         toast.error(data.message || 'Cancellation failed', {
+//           position: "top-right",
+//           autoClose: 4000,
+//         });
 //       }
 //     } catch (error) {
-//       setMessage({ type: 'error', text: 'Error cancelling booking' });
+//       toast.dismiss(loadingToast);
+//       toast.error('Error cancelling booking', {
+//         position: "top-right",
+//         autoClose: 4000,
+//       });
 //     } finally {
 //       setLoading(false);
-//       setTimeout(() => setMessage({ type: '', text: '' }), 3000);
 //     }
 //   };
 
@@ -304,6 +1714,28 @@
 //     }).format(amount || 0);
 //   };
 
+//   // FIXED: Calculate total amount with advance deduction
+//   const calculateTotalAmount = () => {
+//     if (!bookingDetails || !bookingDetails.roomId) return 0;
+    
+//     const startDate = new Date(bookingDetails.bookingStartDate);
+//     const endDate = new Date(bookingDetails.bookingEndDate);
+//     const diffInTime = endDate.getTime() - startDate.getTime();
+//     const diffInDays = diffInTime / (1000 * 3600 * 24);
+    
+//     const roomPrice = bookingDetails.roomId.pricePerDay || 0;
+//     const totalAmount = roomPrice * diffInDays;
+    
+//     return totalAmount;
+//   };
+
+//   // FIXED: Calculate remaining amount after advance
+//   const calculateRemainingAmount = () => {
+//     const totalAmount = calculateTotalAmount();
+//     const advance = bookingDetails?.advance || 0;
+//     return totalAmount - advance;
+//   };
+
 //   const getStatusBadge = (booking) => {
 //     if (booking.isbookingcancel) {
 //       return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">Cancelled</span>;
@@ -321,13 +1753,18 @@
 //     setSearchBookingId('');
 //     setBookingDetails(null);
 //     setActiveBookingCheck(null);
-//     setMessage({ type: '', text: '' });
+//     toast.info('Cleared booking view', {
+//       position: "top-right",
+//       autoClose: 2000,
+//     });
 //   };
 
-//   // Function to handle check booking by ID
 //   const handleCheckBooking = () => {
 //     if (!searchBookingId) {
-//       setMessage({ type: 'error', text: 'Please enter a booking ID' });
+//       toast.warning('Please enter a booking ID', {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
 //       return;
 //     }
 //     setActiveTab('view');
@@ -335,459 +1772,554 @@
 //   };
 
 //   return (
-//     <div className="max-w-7xl mx-auto px-4 py-6">
-//       {/* Header */}
-//       <div className="flex items-center justify-between mb-6">
-//         <h1 className="text-2xl font-semibold text-slate-800">Bookings Management</h1>
-//       </div>
-
-//       {/* Enhanced Success Message */}
-//       {message.text && (
-//         <div className={`mb-6 p-4 rounded-lg text-sm flex items-center gap-3 ${
-//           message.type === 'success' 
-//             ? 'bg-green-50 text-green-800 border border-green-200' 
-//             : 'bg-red-50 text-red-800 border border-red-200'
-//         }`}>
-//           <span className={`material-icons ${message.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-//             {message.type === 'success' ? 'check_circle' : 'error'}
-//           </span>
-//           <span className="flex-1">{message.text}</span>
-//           {message.type === 'success' && message.text.includes('created') && (
-//             <span className="text-xs bg-green-100 px-3 py-1.5 rounded-full text-green-700 font-medium flex items-center gap-1">
-//               <span className="material-icons text-sm">arrow_forward</span>
-//               Redirecting...
-//             </span>
-//           )}
-//         </div>
-//       )}
-
-//       {/* VISIBLE COLORFUL ACTION BUTTONS */}
-//       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-//         {/* Create Booking Button - BLUE */}
-//         <button
-//           onClick={() => setActiveTab('create')}
-//           className={`p-6 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 group ${
-//             activeTab === 'create'
-//               ? 'bg-blue-600 border-blue-600 shadow-lg'
-//               : 'bg-white border-blue-500 hover:bg-blue-50 hover:border-blue-600 hover:shadow-lg'
-//           }`}
-//         >
-//           <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-200 ${
-//             activeTab === 'create'
-//               ? 'bg-white scale-110'
-//               : 'bg-blue-100 group-hover:bg-blue-600 group-hover:scale-110'
-//           }`}>
-//             <span className={`material-icons text-3xl ${
-//               activeTab === 'create' ? 'text-blue-600' : 'text-blue-600 group-hover:text-white'
-//             }`}>add_circle</span>
-//           </div>
-//           <div className="text-left flex-1">
-//             <h3 className={`text-lg font-semibold transition-colors ${
-//               activeTab === 'create' ? 'text-white' : 'text-slate-800 group-hover:text-blue-700'
-//             }`}>Create New Booking</h3>
-//             <p className={`text-sm ${
-//               activeTab === 'create' ? 'text-blue-100' : 'text-slate-500 group-hover:text-blue-600'
-//             }`}>Book a room for your stay</p>
-//           </div>
-//           {activeTab === 'create' && (
-//             <span className="bg-white text-blue-600 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm">
-//               Active
-//             </span>
-//           )}
-//           <span className={`material-icons ${
-//             activeTab === 'create' ? 'text-white translate-x-1' : 'text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1'
-//           } transition-transform`}>arrow_forward</span>
-//         </button>
-
-//         {/* View Booking & Bill Button - GREEN */}
-//         <button
-//           onClick={() => setActiveTab('view')}
-//           className={`p-6 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 group ${
-//             activeTab === 'view'
-//               ? 'bg-emerald-600 border-emerald-600 shadow-lg'
-//               : 'bg-white border-emerald-500 hover:bg-emerald-50 hover:border-emerald-600 hover:shadow-lg'
-//           }`}
-//         >
-//           <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-200 ${
-//             activeTab === 'view'
-//               ? 'bg-white scale-110'
-//               : 'bg-emerald-100 group-hover:bg-emerald-600 group-hover:scale-110'
-//           }`}>
-//             <span className={`material-icons text-3xl ${
-//               activeTab === 'view' ? 'text-emerald-600' : 'text-emerald-600 group-hover:text-white'
-//             }`}>receipt</span>
-//           </div>
-//           <div className="text-left flex-1">
-//             <h3 className={`text-lg font-semibold transition-colors ${
-//               activeTab === 'view' ? 'text-white' : 'text-slate-800 group-hover:text-emerald-700'
-//             }`}>View Booking & Bill</h3>
-//             <p className={`text-sm ${
-//               activeTab === 'view' ? 'text-emerald-100' : 'text-slate-500 group-hover:text-emerald-600'
-//             }`}>Check booking details and payment</p>
-//           </div>
-//           {activeTab === 'view' && (
-//             <span className="bg-white text-emerald-600 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm">
-//               Active
-//             </span>
-//           )}
-//           <span className={`material-icons ${
-//             activeTab === 'view' ? 'text-white translate-x-1' : 'text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1'
-//           } transition-transform`}>arrow_forward</span>
-//         </button>
-//       </div>
-
-//       {/* Quick Check Booking by ID - BLUE */}
-//       <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-5 mb-8">
-//         <div className="flex flex-col md:flex-row items-center gap-4">
-//           <div className="flex items-center gap-3">
-//             <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-md">
-//               <span className="material-icons text-blue-600">search</span>
-//             </div>
-//             <div>
-//               <h3 className="font-semibold text-white">Quick Booking Lookup</h3>
-//               <p className="text-xs text-blue-100">Enter booking ID to view details</p>
-//             </div>
-//           </div>
-//           <div className="flex-1 relative">
-//             <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">fingerprint</span>
-//             <input
-//               type="text"
-//               placeholder="Enter Booking ID (e.g. 698ed232b46aa278e6f9449b)"
-//               className="w-full pl-10 pr-4 py-3 bg-white border-0 rounded-lg text-sm focus:ring-2 focus:ring-white/50 outline-none shadow-md"
-//               value={searchBookingId}
-//               onChange={(e) => setSearchBookingId(e.target.value)}
-//             />
-//           </div>
+//     <>
+//       <ToastContainer
+//         position="top-right"
+//         autoClose={5000}
+//         hideProgressBar={false}
+//         newestOnTop
+//         closeOnClick
+//         rtl={false}
+//         pauseOnFocusLoss
+//         draggable
+//         pauseOnHover
+//         theme="colored"
+//         limit={5}
+//       />
+      
+//       <div className="max-w-7xl mx-auto px-4 py-6">
+//         {/* Header */}
+//         <div className="flex items-center justify-between mb-6">
+//           <h1 className="text-2xl font-semibold text-slate-800">Bookings Management</h1>
 //           <button
-//             onClick={handleCheckBooking}
-//             disabled={loading}
-//             className="px-6 py-3 bg-white text-blue-700 rounded-lg text-sm font-bold hover:bg-blue-50 transition-colors flex items-center gap-2 whitespace-nowrap shadow-lg hover:shadow-xl"
+//             onClick={() => {
+//               toast(
+//                 <div>
+//                   <strong>ℹ️ Quick Tips</strong>
+//                   <br />
+//                   • Use the blue buttons to navigate
+//                   <br />
+//                   • Enter Booking ID to view details
+//                   <br />
+//                   • Green button for payments
+//                 </div>,
+//                 {
+//                   position: "top-right",
+//                   autoClose: 8000,
+//                   closeButton: true,
+//                 }
+//               );
+//             }}
+//             className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-sm hover:bg-slate-200 transition-colors flex items-center gap-1"
 //           >
-//             <span className="material-icons text-sm">visibility</span>
-//             Check Booking
+//             <span className="material-icons text-sm">help</span>
+//             Help
 //           </button>
 //         </div>
-//       </div>
 
-//       {/* Tabs */}
-//       <div className="border-b border-slate-200 mb-6 overflow-x-auto">
-//         <nav className="flex gap-6 min-w-max">
+//         {/* VISIBLE COLORFUL ACTION BUTTONS */}
+//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+//           {/* Create Booking Button - BLUE */}
 //           <button
-//             onClick={() => setActiveTab('create')}
-//             className={`pb-3 px-1 text-sm font-medium transition-colors relative ${
+//             onClick={() => {
+//               setActiveTab('create');
+//               toast.info('📝 Create a new booking', {
+//                 position: "top-right",
+//                 autoClose: 2000,
+//               });
+//             }}
+//             className={`p-6 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 group ${
 //               activeTab === 'create'
-//                 ? 'text-blue-600 border-b-2 border-blue-600'
-//                 : 'text-slate-500 hover:text-slate-700'
+//                 ? 'bg-blue-600 border-blue-600 shadow-lg'
+//                 : 'bg-white border-blue-500 hover:bg-blue-50 hover:border-blue-600 hover:shadow-lg'
 //             }`}
 //           >
-//             Create Booking
+//             <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-200 ${
+//               activeTab === 'create'
+//                 ? 'bg-white scale-110'
+//                 : 'bg-blue-100 group-hover:bg-blue-600 group-hover:scale-110'
+//             }`}>
+//               <span className={`material-icons text-3xl ${
+//                 activeTab === 'create' ? 'text-blue-600' : 'text-blue-600 group-hover:text-white'
+//               }`}>add_circle</span>
+//             </div>
+//             <div className="text-left flex-1">
+//               <h3 className={`text-lg font-semibold transition-colors ${
+//                 activeTab === 'create' ? 'text-white' : 'text-slate-800 group-hover:text-blue-700'
+//               }`}>Create New Booking</h3>
+//               <p className={`text-sm ${
+//                 activeTab === 'create' ? 'text-blue-100' : 'text-slate-500 group-hover:text-blue-600'
+//               }`}>Book a room for your stay</p>
+//             </div>
+//             {activeTab === 'create' && (
+//               <span className="bg-white text-blue-600 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm">
+//                 Active
+//               </span>
+//             )}
+//             <span className={`material-icons ${
+//               activeTab === 'create' ? 'text-white translate-x-1' : 'text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1'
+//             } transition-transform`}>arrow_forward</span>
 //           </button>
+
+//           {/* View Booking & Bill Button - GREEN */}
 //           <button
-//             onClick={() => setActiveTab('view')}
-//             className={`pb-3 px-1 text-sm font-medium transition-colors relative ${
+//             onClick={() => {
+//               setActiveTab('view');
+//               toast.info('📋 View booking details and bills', {
+//                 position: "top-right",
+//                 autoClose: 2000,
+//               });
+//             }}
+//             className={`p-6 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 group ${
 //               activeTab === 'view'
-//                 ? 'text-emerald-600 border-b-2 border-emerald-600'
-//                 : 'text-slate-500 hover:text-slate-700'
+//                 ? 'bg-emerald-600 border-emerald-600 shadow-lg'
+//                 : 'bg-white border-emerald-500 hover:bg-emerald-50 hover:border-emerald-600 hover:shadow-lg'
 //             }`}
 //           >
-//             View Booking
-//           </button>
-//           <button
-//             onClick={() => setActiveTab('room')}
-//             className={`pb-3 px-1 text-sm font-medium transition-colors ${
-//               activeTab === 'room'
-//                 ? 'text-blue-600 border-b-2 border-blue-600'
-//                 : 'text-slate-500 hover:text-slate-700'
-//             }`}
-//           >
-//             Room Bookings
-//           </button>
-//         </nav>
-//       </div>
-
-//       {/* CREATE BOOKING TAB */}
-//       {activeTab === 'create' && (
-//         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-//           <div className="flex items-center gap-2 mb-4">
-//             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-//               <span className="material-icons text-blue-600">add_circle</span>
+//             <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-200 ${
+//               activeTab === 'view'
+//                 ? 'bg-white scale-110'
+//                 : 'bg-emerald-100 group-hover:bg-emerald-600 group-hover:scale-110'
+//             }`}>
+//               <span className={`material-icons text-3xl ${
+//                 activeTab === 'view' ? 'text-emerald-600' : 'text-emerald-600 group-hover:text-white'
+//               }`}>receipt</span>
 //             </div>
-//             <h2 className="text-lg font-semibold text-slate-800">Create New Booking</h2>
-//           </div>
-          
-//           <form onSubmit={createBooking} className="space-y-4 max-w-2xl">
-//             <div>
-//               <label className="block text-sm font-medium text-slate-700 mb-1">
-//                 Select Room <span className="text-red-500">*</span>
-//               </label>
-//               <select
-//                 name="roomId"
-//                 value={createForm.roomId}
-//                 onChange={handleCreateInputChange}
-//                 className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
-//                 required
-//               >
-//                 <option value="">Choose a room...</option>
-//                 {rooms.filter(room => room.isAvailable).map((room) => (
-//                   <option key={room._id} value={room._id}>
-//                     {room.title} - {formatCurrency(room.pricePerDay)}/night - {room.roomSize}m² - {room.noOfBeds} bed(s)
-//                   </option>
-//                 ))}
-//               </select>
-//               {rooms.filter(room => room.isAvailable).length === 0 && (
-//                 <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
-//                   <span className="material-icons text-amber-600 text-xs">info</span>
-//                   No rooms available at the moment.
-//                 </p>
-//               )}
+//             <div className="text-left flex-1">
+//               <h3 className={`text-lg font-semibold transition-colors ${
+//                 activeTab === 'view' ? 'text-white' : 'text-slate-800 group-hover:text-emerald-700'
+//               }`}>View Booking & Bill</h3>
+//               <p className={`text-sm ${
+//                 activeTab === 'view' ? 'text-emerald-100' : 'text-slate-500 group-hover:text-emerald-600'
+//               }`}>Check booking details and payment</p>
 //             </div>
+//             {activeTab === 'view' && (
+//               <span className="bg-white text-emerald-600 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm">
+//                 Active
+//               </span>
+//             )}
+//             <span className={`material-icons ${
+//               activeTab === 'view' ? 'text-white translate-x-1' : 'text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1'
+//             } transition-transform`}>arrow_forward</span>
+//           </button>
+//         </div>
 
-//             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//               <div>
-//                 <label className="block text-sm font-medium text-slate-700 mb-1">
-//                   Check-in Date <span className="text-red-500">*</span>
-//                 </label>
-//                 <input
-//                   type="datetime-local"
-//                   name="bookingStartDate"
-//                   value={createForm.bookingStartDate}
-//                   onChange={handleCreateInputChange}
-//                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
-//                   required
-//                 />
+//         {/* Quick Check Booking by ID - BLUE */}
+//         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-5 mb-8">
+//           <div className="flex flex-col md:flex-row items-center gap-4">
+//             <div className="flex items-center gap-3">
+//               <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-md">
+//                 <span className="material-icons text-blue-600">search</span>
 //               </div>
 //               <div>
-//                 <label className="block text-sm font-medium text-slate-700 mb-1">
-//                   Check-out Date <span className="text-red-500">*</span>
-//                 </label>
-//                 <input
-//                   type="datetime-local"
-//                   name="bookingEndDate"
-//                   value={createForm.bookingEndDate}
-//                   onChange={handleCreateInputChange}
-//                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
-//                   required
-//                 />
+//                 <h3 className="font-semibold text-white">Quick Booking Lookup</h3>
+//                 <p className="text-xs text-blue-100">Enter booking ID to view details</p>
 //               </div>
 //             </div>
-
-//             {/* VISIBLE BLUE CREATE BOOKING BUTTON */}
-//             <div className="pt-6 border-t border-slate-100">
-//               <button
-//                 type="submit"
-//                 disabled={loading || !createForm.roomId || !createForm.bookingStartDate || !createForm.bookingEndDate}
-//                 className="w-full md:w-auto px-8 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 group"
-//               >
-//                 {loading ? (
-//                   <>
-//                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-//                     <span>Creating Booking...</span>
-//                   </>
-//                 ) : (
-//                   <>
-//                     <span className="material-icons text-white group-hover:scale-110 transition-transform">booking</span>
-//                     <span className="font-semibold text-base">CREATE BOOKING</span>
-//                     <span className="material-icons text-white/80 group-hover:translate-x-1 transition-transform">arrow_forward</span>
-//                   </>
-//                 )}
-//               </button>
-              
-//               {/* Form Status Messages */}
-//               {!createForm.roomId && (
-//                 <p className="text-xs text-amber-600 mt-3 flex items-center gap-1">
-//                   <span className="material-icons text-amber-600 text-xs">info</span>
-//                   Please select a room to continue
-//                 </p>
-//               )}
-//               {createForm.roomId && (!createForm.bookingStartDate || !createForm.bookingEndDate) && (
-//                 <p className="text-xs text-amber-600 mt-3 flex items-center gap-1">
-//                   <span className="material-icons text-amber-600 text-xs">info</span>
-//                   Please select check-in and check-out dates
-//                 </p>
-//               )}
-//               {createForm.roomId && createForm.bookingStartDate && createForm.bookingEndDate && (
-//                 <p className="text-xs text-green-600 mt-3 flex items-center gap-1">
-//                   <span className="material-icons text-green-600 text-xs">check_circle</span>
-//                   Ready to create booking! Click the blue button above.
-//                 </p>
-//               )}
+//             <div className="flex-1 relative">
+//               <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">fingerprint</span>
+//               <input
+//                 type="text"
+//                 placeholder="Enter Booking ID (e.g. 698ed232b46aa278e6f9449b)"
+//                 className="w-full pl-10 pr-4 py-3 bg-white border-0 rounded-lg text-sm focus:ring-2 focus:ring-white/50 outline-none shadow-md"
+//                 value={searchBookingId}
+//                 onChange={(e) => setSearchBookingId(e.target.value)}
+//               />
 //             </div>
-//           </form>
-
-//           {/* Quick Tips - BLUE */}
-//           <div className="mt-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
-//             <h4 className="text-xs font-semibold text-blue-800 uppercase tracking-wider mb-2 flex items-center gap-1">
-//               <span className="material-icons text-blue-600 text-sm">tips_and_updates</span>
-//               Booking Tips
-//             </h4>
-//             <ul className="text-xs text-blue-700 space-y-1">
-//               <li className="flex items-center gap-2">
-//                 <span className="w-1 h-1 bg-blue-400 rounded-full"></span>
-//                 Make sure to select available rooms only (marked with price)
-//               </li>
-//               <li className="flex items-center gap-2">
-//                 <span className="w-1 h-1 bg-blue-400 rounded-full"></span>
-//                 Check-in and check-out times are in 24-hour format
-//               </li>
-//               <li className="flex items-center gap-2">
-//                 <span className="w-1 h-1 bg-blue-400 rounded-full"></span>
-//                 After creation, you'll be redirected to view booking details
-//               </li>
-//             </ul>
+//             <button
+//               onClick={handleCheckBooking}
+//               disabled={loading}
+//               className="px-6 py-3 bg-white text-blue-700 rounded-lg text-sm font-bold hover:bg-blue-50 transition-colors flex items-center gap-2 whitespace-nowrap shadow-lg hover:shadow-xl"
+//             >
+//               <span className="material-icons text-sm">visibility</span>
+//               Check Booking
+//             </button>
 //           </div>
 //         </div>
-//       )}
 
-//       {/* VIEW BOOKING TAB */}
-//       {activeTab === 'view' && (
-//         <div className="space-y-6">
+//         {/* Tabs */}
+//         <div className="border-b border-slate-200 mb-6 overflow-x-auto">
+//           <nav className="flex gap-6 min-w-max">
+//             <button
+//               onClick={() => setActiveTab('create')}
+//               className={`pb-3 px-1 text-sm font-medium transition-colors relative ${
+//                 activeTab === 'create'
+//                   ? 'text-blue-600 border-b-2 border-blue-600'
+//                   : 'text-slate-500 hover:text-slate-700'
+//               }`}
+//             >
+//               Create Booking
+//             </button>
+//             <button
+//               onClick={() => setActiveTab('view')}
+//               className={`pb-3 px-1 text-sm font-medium transition-colors relative ${
+//                 activeTab === 'view'
+//                   ? 'text-emerald-600 border-b-2 border-emerald-600'
+//                   : 'text-slate-500 hover:text-slate-700'
+//               }`}
+//             >
+//               View Booking
+//             </button>
+            
+//             {/* Room Bookings - Only show for owners and admins */}
+//             {(user.role === 'owner' || user.role === 'admin') && (
+//               <button
+//                 onClick={() => setActiveTab('room')}
+//                 className={`pb-3 px-1 text-sm font-medium transition-colors ${
+//                   activeTab === 'room'
+//                     ? 'text-blue-600 border-b-2 border-blue-600'
+//                     : 'text-slate-500 hover:text-slate-700'
+//                 }`}
+//               >
+//                 Room Bookings
+//               </button>
+//             )}
+//           </nav>
+//         </div>
+
+//         {/* CREATE BOOKING TAB */}
+//         {activeTab === 'create' && (
 //           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
 //             <div className="flex items-center gap-2 mb-4">
-//               <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-//                 <span className="material-icons text-emerald-600">receipt</span>
+//               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+//                 <span className="material-icons text-blue-600">add_circle</span>
 //               </div>
-//               <h2 className="text-lg font-semibold text-slate-800">View Booking & Bill</h2>
+//               <h2 className="text-lg font-semibold text-slate-800">Create New Booking</h2>
 //             </div>
             
-//             <div className="flex flex-col md:flex-row gap-4 mb-6">
-//               <div className="flex-1 relative">
-//                 <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
-//                 <input
-//                   type="text"
-//                   placeholder="Enter Booking ID"
-//                   className="w-full pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
-//                   value={searchBookingId}
-//                   onChange={(e) => setSearchBookingId(e.target.value)}
-//                 />
-//               </div>
-//               <div className="flex gap-2">
-//                 <button
-//                   onClick={() => fetchBookingById()}
-//                   disabled={loading}
-//                   className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors flex items-center gap-1 shadow-md"
+//             <form onSubmit={createBooking} className="space-y-4 max-w-2xl">
+//               <div>
+//                 <label className="block text-sm font-medium text-slate-700 mb-1">
+//                   Select Room <span className="text-red-500">*</span>
+//                 </label>
+//                 <select
+//                   name="roomId"
+//                   value={createForm.roomId}
+//                   onChange={handleCreateInputChange}
+//                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+//                   required
 //                 >
-//                   <span className="material-icons text-sm">search</span>
-//                   Search
-//                 </button>
-//                 {bookingDetails && (
-//                   <button
-//                     onClick={clearView}
-//                     className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
-//                   >
-//                     Clear
-//                   </button>
+//                   <option value="">Choose a room...</option>
+//                   {rooms.filter(room => room.isAvailable).map((room) => (
+//                     <option key={room._id} value={room._id}>
+//                       {room.title} - {formatCurrency(room.pricePerDay)}/night - {room.roomSize}m² - {room.noOfBeds} bed(s)
+//                     </option>
+//                   ))}
+//                 </select>
+//                 {rooms.filter(room => room.isAvailable).length === 0 && (
+//                   <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+//                     <span className="material-icons text-amber-600 text-xs">info</span>
+//                     No rooms available at the moment.
+//                   </p>
 //                 )}
 //               </div>
-//             </div>
 
-//             {bookingDetails && (
-//               <div className="space-y-6">
-//                 {/* Booking Details */}
-//                 <div className="bg-slate-50 p-6 rounded-lg border border-slate-200">
-//                   <div className="flex justify-between items-start mb-4">
-//                     <div>
-//                       <p className="text-xs text-slate-500">Booking ID</p>
-//                       <p className="text-lg font-semibold text-blue-600 font-mono">#{bookingDetails._id.slice(-8)}</p>
-//                       <p className="text-xs text-slate-400 mt-1 font-mono">{bookingDetails._id}</p>
-//                     </div>
-//                     {getStatusBadge(bookingDetails)}
-//                   </div>
-                  
-//                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//                     <div className="space-y-3">
-//                       <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Guest Information</h4>
-//                       <div>
-//                         <p className="font-medium text-slate-800">{bookingDetails.userId?.name}</p>
-//                         <p className="text-xs text-slate-500">{bookingDetails.userId?.email}</p>
-//                       </div>
-//                     </div>
-                    
-//                     <div className="space-y-3">
-//                       <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Room Information</h4>
-//                       <div>
-//                         <p className="font-medium text-slate-800">{bookingDetails.roomId?.title}</p>
-//                         <p className="text-xs text-slate-500">{bookingDetails.roomId?.description}</p>
-//                         <p className="text-xs text-slate-500 mt-1">
-//                           {bookingDetails.roomId?.roomSize}m² • {bookingDetails.roomId?.noOfBeds} bed(s) • Max {bookingDetails.roomId?.maxOccupancy} guests
-//                         </p>
-//                       </div>
-//                     </div>
-                    
-//                     <div className="space-y-3">
-//                       <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Booking Timeline</h4>
-//                       <div className="space-y-1">
-//                         <p className="text-sm"><span className="text-slate-500">Check-in:</span> {formatDate(bookingDetails.bookingStartDate)}</p>
-//                         <p className="text-sm"><span className="text-slate-500">Check-out:</span> {formatDate(bookingDetails.bookingEndDate)}</p>
-//                         {bookingDetails.checkIn && (
-//                           <p className="text-sm"><span className="text-slate-500">Actual Check-in:</span> {formatDate(bookingDetails.checkIn)}</p>
-//                         )}
-//                         {bookingDetails.checkOut && (
-//                           <p className="text-sm"><span className="text-slate-500">Actual Check-out:</span> {formatDate(bookingDetails.checkOut)}</p>
-//                         )}
-//                       </div>
-//                     </div>
-                    
-//                     <div className="space-y-3">
-//                       <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Payment Details</h4>
-//                       <div className="space-y-1">
-//                         <p className="text-sm">
-//                           <span className="text-slate-500">Amount:</span>{' '}
-//                           <span className="font-semibold text-slate-800">{formatCurrency(bookingDetails.amount)}</span>
-//                         </p>
-//                         <p className="text-sm">
-//                           <span className="text-slate-500">Payment Status:</span>{' '}
-//                           <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-//                             bookingDetails.payment_status ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-//                           }`}>
-//                             {bookingDetails.payment_status ? 'Paid' : 'Pending'}
-//                           </span>
-//                         </p>
-//                       </div>
-//                     </div>
-//                   </div>
+//               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//                 <div>
+//                   <label className="block text-sm font-medium text-slate-700 mb-1">
+//                     Check-in Date <span className="text-red-500">*</span>
+//                   </label>
+//                   <input
+//                     type="datetime-local"
+//                     name="bookingStartDate"
+//                     value={createForm.bookingStartDate}
+//                     onChange={handleCreateInputChange}
+//                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+//                     required
+//                   />
 //                 </div>
+//                 <div>
+//                   <label className="block text-sm font-medium text-slate-700 mb-1">
+//                     Check-out Date <span className="text-red-500">*</span>
+//                   </label>
+//                   <input
+//                     type="datetime-local"
+//                     name="bookingEndDate"
+//                     value={createForm.bookingEndDate}
+//                     onChange={handleCreateInputChange}
+//                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+//                     required
+//                   />
+//                 </div>
+//               </div>
 
-//                 {/* Active Booking Check - Bill Details */}
-//                 {activeBookingCheck && !bookingDetails.bookingCompleted && !bookingDetails.isbookingcancel && (
-//                   <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-//                     <h4 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-2">
-//                       <span className="material-icons text-blue-600 text-sm">receipt</span>
-//                       Current Booking Summary
-//                     </h4>
+//               <div className="pt-6 border-t border-slate-100">
+//                 <button
+//                   type="submit"
+//                   disabled={loading || !createForm.roomId || !createForm.bookingStartDate || !createForm.bookingEndDate}
+//                   className="w-full md:w-auto px-8 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 group"
+//                 >
+//                   {loading ? (
+//                     <>
+//                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+//                       <span>Creating Booking...</span>
+//                     </>
+//                   ) : (
+//                     <>
+//                       <span className="material-icons text-white group-hover:scale-110 transition-transform">booking</span>
+//                       <span className="font-semibold text-base">CREATE BOOKING</span>
+//                       <span className="material-icons text-white/80 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+//                     </>
+//                   )}
+//                 </button>
+                
+//                 {/* Form Status Messages */}
+//                 {!createForm.roomId && (
+//                   <p className="text-xs text-amber-600 mt-3 flex items-center gap-1">
+//                     <span className="material-icons text-amber-600 text-xs">info</span>
+//                     Please select a room to continue
+//                   </p>
+//                 )}
+//                 {createForm.roomId && (!createForm.bookingStartDate || !createForm.bookingEndDate) && (
+//                   <p className="text-xs text-amber-600 mt-3 flex items-center gap-1">
+//                     <span className="material-icons text-amber-600 text-xs">info</span>
+//                     Please select check-in and check-out dates
+//                   </p>
+//                 )}
+//                 {createForm.roomId && createForm.bookingStartDate && createForm.bookingEndDate && (
+//                   <p className="text-xs text-green-600 mt-3 flex items-center gap-1">
+//                     <span className="material-icons text-green-600 text-xs">check_circle</span>
+//                     Ready to create booking! Click the blue button above.
+//                   </p>
+//                 )}
+//               </div>
+//             </form>
+
+//             {/* Quick Tips - BLUE */}
+//             <div className="mt-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
+//               <h4 className="text-xs font-semibold text-blue-800 uppercase tracking-wider mb-2 flex items-center gap-1">
+//                 <span className="material-icons text-blue-600 text-sm">tips_and_updates</span>
+//                 Booking Tips
+//               </h4>
+//               <ul className="text-xs text-blue-700 space-y-1">
+//                 <li className="flex items-center gap-2">
+//                   <span className="w-1 h-1 bg-blue-400 rounded-full"></span>
+//                   Make sure to select available rooms only (marked with price)
+//                 </li>
+//                 <li className="flex items-center gap-2">
+//                   <span className="w-1 h-1 bg-blue-400 rounded-full"></span>
+//                   Check-in and check-out times are in 24-hour format
+//                 </li>
+//                 <li className="flex items-center gap-2">
+//                   <span className="w-1 h-1 bg-blue-400 rounded-full"></span>
+//                   After creation, you'll be redirected to view booking details
+//                 </li>
+//               </ul>
+//             </div>
+//           </div>
+//         )}
+
+//         {/* VIEW BOOKING TAB */}
+//         {activeTab === 'view' && (
+//           <div className="space-y-6">
+//             <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+//               <div className="flex items-center gap-2 mb-4">
+//                 <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+//                   <span className="material-icons text-emerald-600">receipt</span>
+//                 </div>
+//                 <h2 className="text-lg font-semibold text-slate-800">View Booking & Bill</h2>
+//               </div>
+              
+//               <div className="flex flex-col md:flex-row gap-4 mb-6">
+//                 <div className="flex-1 relative">
+//                   <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+//                   <input
+//                     type="text"
+//                     placeholder="Enter Booking ID"
+//                     className="w-full pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+//                     value={searchBookingId}
+//                     onChange={(e) => setSearchBookingId(e.target.value)}
+//                   />
+//                 </div>
+//                 <div className="flex gap-2">
+//                   <button
+//                     onClick={() => fetchBookingById()}
+//                     disabled={loading}
+//                     className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors flex items-center gap-1 shadow-md"
+//                   >
+//                     <span className="material-icons text-sm">search</span>
+//                     Search
+//                   </button>
+//                   {bookingDetails && (
+//                     <button
+//                       onClick={clearView}
+//                       className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
+//                     >
+//                       Clear
+//                     </button>
+//                   )}
+//                 </div>
+//               </div>
+
+//               {bookingDetails && (
+//                 <div className="space-y-6">
+//                   {/* Booking Details */}
+//                   <div className="bg-slate-50 p-6 rounded-lg border border-slate-200">
+//                     <div className="flex justify-between items-start mb-4">
+//                       <div>
+//                         <p className="text-xs text-slate-500">Booking ID</p>
+//                         <p className="text-lg font-semibold text-blue-600 font-mono">#{bookingDetails._id.slice(-8)}</p>
+//                         <p className="text-xs text-slate-400 mt-1 font-mono">{bookingDetails._id}</p>
+//                       </div>
+//                       {getStatusBadge(bookingDetails)}
+//                     </div>
                     
-//                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-//                       <div className="bg-white p-3 rounded-lg border border-blue-100">
-//                         <p className="text-xs text-slate-500">Total Hours</p>
-//                         <p className="text-xl font-bold text-blue-700">{activeBookingCheck.totalHours.toFixed(1)} hrs</p>
+//                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//                       <div className="space-y-3">
+//                         <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Guest Information</h4>
+//                         <div>
+//                           <p className="font-medium text-slate-800">{bookingDetails.userId?.name}</p>
+//                           <p className="text-xs text-slate-500">{bookingDetails.userId?.email}</p>
+//                         </div>
 //                       </div>
-//                       <div className="bg-white p-3 rounded-lg border border-blue-100">
-//                         <p className="text-xs text-slate-500">Total Days</p>
-//                         <p className="text-xl font-bold text-blue-700">{activeBookingCheck.totalDays} days</p>
+                      
+//                       <div className="space-y-3">
+//                         <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Room Information</h4>
+//                         <div>
+//                           <p className="font-medium text-slate-800">{bookingDetails.roomId?.title}</p>
+//                           <p className="text-xs text-slate-500">{bookingDetails.roomId?.description}</p>
+//                           <p className="text-xs text-slate-500 mt-1">
+//                             {bookingDetails.roomId?.roomSize}m² • {bookingDetails.roomId?.noOfBeds} bed(s) • Max {bookingDetails.roomId?.maxOccupancy} guests
+//                           </p>
+//                         </div>
 //                       </div>
-//                       <div className="bg-white p-3 rounded-lg border border-blue-100">
-//                         <p className="text-xs text-slate-500">Amount Due</p>
-//                         <p className="text-xl font-bold text-blue-700">{formatCurrency(activeBookingCheck.amount)}</p>
+                      
+//                       <div className="space-y-3">
+//                         <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Booking Timeline</h4>
+//                         <div className="space-y-1">
+//                           <p className="text-sm"><span className="text-slate-500">Check-in:</span> {formatDate(bookingDetails.bookingStartDate)}</p>
+//                           <p className="text-sm"><span className="text-slate-500">Check-out:</span> {formatDate(bookingDetails.bookingEndDate)}</p>
+//                           {bookingDetails.checkIn && (
+//                             <p className="text-sm"><span className="text-slate-500">Actual Check-in:</span> {formatDate(bookingDetails.checkIn)}</p>
+//                           )}
+//                           {bookingDetails.checkOut && (
+//                             <p className="text-sm"><span className="text-slate-500">Actual Check-out:</span> {formatDate(bookingDetails.checkOut)}</p>
+//                           )}
+//                         </div>
+//                       </div>
+                      
+//                       <div className="space-y-3">
+//                         <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Payment Details</h4>
+//                         <div className="space-y-2">
+//                           <div className="flex justify-between items-center">
+//                             <span className="text-sm text-slate-600">Room Price/night:</span>
+//                             <span className="text-sm font-medium text-slate-800">{formatCurrency(bookingDetails.roomId?.pricePerDay)}</span>
+//                           </div>
+//                           <div className="flex justify-between items-center">
+//                             <span className="text-sm text-slate-600">Total Days:</span>
+//                             <span className="text-sm font-medium text-slate-800">
+//                               {Math.ceil((new Date(bookingDetails.bookingEndDate) - new Date(bookingDetails.bookingStartDate)) / (1000 * 3600 * 24))} days
+//                             </span>
+//                           </div>
+//                           <div className="flex justify-between items-center border-t border-slate-200 pt-2 mt-2">
+//                             <span className="text-sm font-semibold text-slate-700">Total Amount:</span>
+//                             <span className="text-base font-bold text-blue-600">{formatCurrency(calculateTotalAmount())}</span>
+//                           </div>
+                          
+//                           {/* Advance Payment Section */}
+//                           {bookingDetails.advance > 0 && (
+//                             <>
+//                               <div className="flex justify-between items-center bg-blue-50 p-2 rounded-lg mt-2">
+//                                 <span className="text-sm text-blue-700">
+//                                   <span className="font-semibold">Advance Paid:</span>
+//                                   {bookingDetails.isadvance && (
+//                                     <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Paid</span>
+//                                   )}
+//                                 </span>
+//                                 <span className="text-base font-bold text-blue-600">- {formatCurrency(bookingDetails.advance)}</span>
+//                               </div>
+//                               <div className="flex justify-between items-center bg-emerald-50 p-2 rounded-lg">
+//                                 <span className="text-sm font-semibold text-emerald-700">Remaining Amount:</span>
+//                                 <span className="text-base font-bold text-emerald-600">{formatCurrency(calculateRemainingAmount())}</span>
+//                               </div>
+//                             </>
+//                           )}
+                          
+//                           <div className="mt-2">
+//                             <p className="text-sm">
+//                               <span className="text-slate-500">Payment Status:</span>{' '}
+//                               <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ml-2 ${
+//                                 bookingDetails.payment_status ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+//                               }`}>
+//                                 {bookingDetails.payment_status ? 'Paid' : 'Pending'}
+//                               </span>
+//                             </p>
+//                           </div>
+//                         </div>
 //                       </div>
 //                     </div>
+//                   </div>
 
-//                     <div className="flex flex-col sm:flex-row gap-3 mt-4">
-//                       <button
-//                         onClick={checkoutBooking}
-//                         disabled={loading}
-//                         className="px-6 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-md"
-//                       >
-//                         {loading ? (
-//                           <>
-//                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-//                             Processing...
-//                           </>
-//                         ) : (
-//                           <>
-//                             <span className="material-icons text-sm">payment</span>
-//                             CHECKOUT NOW
-//                           </>
-//                         )}
-//                       </button>
+//                   {/* Active Booking Check - Bill Details */}
+//                   {activeBookingCheck && !bookingDetails.bookingCompleted && !bookingDetails.isbookingcancel && (
+//                     <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+//                       <h4 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-2">
+//                         <span className="material-icons text-blue-600 text-sm">receipt</span>
+//                         Current Booking Summary
+//                       </h4>
+                      
+//                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+//                         <div className="bg-white p-3 rounded-lg border border-blue-100">
+//                           <p className="text-xs text-slate-500">Total Hours</p>
+//                           <p className="text-xl font-bold text-blue-700">{activeBookingCheck.totalHours?.toFixed(1) || 0} hrs</p>
+//                         </div>
+//                         <div className="bg-white p-3 rounded-lg border border-blue-100">
+//                           <p className="text-xs text-slate-500">Total Days</p>
+//                           <p className="text-xl font-bold text-blue-700">{activeBookingCheck.totalDays || 0} days</p>
+//                         </div>
+//                         <div className="bg-white p-3 rounded-lg border border-blue-100">
+//                           <p className="text-xs text-slate-500">Amount Due</p>
+//                           <p className="text-xl font-bold text-blue-700">{formatCurrency(activeBookingCheck.amount || 0)}</p>
+//                         </div>
+//                       </div>
+
+//                       {/* Advance Deduction Summary */}
+//                       {bookingDetails.advance > 0 && (
+//                         <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-200 mb-4">
+//                           <div className="flex justify-between items-center">
+//                             <span className="text-sm text-emerald-700">Advance already paid:</span>
+//                             <span className="text-base font-bold text-emerald-600">{formatCurrency(bookingDetails.advance)}</span>
+//                           </div>
+//                           <div className="flex justify-between items-center mt-1">
+//                             <span className="text-sm text-emerald-700">Remaining to pay:</span>
+//                             <span className="text-base font-bold text-emerald-600">
+//                               {formatCurrency(activeBookingCheck.amount || 0) }
+//                             </span>
+//                           </div>
+//                         </div>
+//                       )}
+
+//                       <div className="flex flex-col sm:flex-row gap-3 mt-4">
+//                         <button
+//                           onClick={checkoutBooking}
+//                           disabled={loading}
+//                           className="px-6 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-md"
+//                         >
+//                           {loading ? (
+//                             <>
+//                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+//                               Processing...
+//                             </>
+//                           ) : (
+//                             <>
+//                               <span className="material-icons text-sm">payment</span>
+//                               CHECKOUT NOW (Pay {formatCurrency((activeBookingCheck.amount || 0))})
+//                             </>
+//                           )}
+//                         </button>
+//                         <button
+//                           onClick={() => cancelBooking(bookingDetails._id)}
+//                           className="px-6 py-2.5 border border-rose-200 text-rose-600 rounded-lg text-sm font-medium hover:bg-rose-50 transition-colors flex items-center justify-center gap-2"
+//                         >
+//                           <span className="material-icons text-sm">cancel</span>
+//                           Cancel Booking
+//                         </button>
+//                       </div>
+//                     </div>
+//                   )}
+
+//                   {!bookingDetails.bookingCompleted && !bookingDetails.isbookingcancel && !activeBookingCheck && (
+//                     <div className="flex gap-3">
 //                       <button
 //                         onClick={() => cancelBooking(bookingDetails._id)}
 //                         className="px-6 py-2.5 border border-rose-200 text-rose-600 rounded-lg text-sm font-medium hover:bg-rose-50 transition-colors flex items-center justify-center gap-2"
@@ -796,124 +2328,154 @@
 //                         Cancel Booking
 //                       </button>
 //                     </div>
-//                   </div>
-//                 )}
+//                   )}
 
-//                 {!bookingDetails.bookingCompleted && !bookingDetails.isbookingcancel && !activeBookingCheck && (
-//                   <div className="flex gap-3">
-//                     <button
-//                       onClick={() => cancelBooking(bookingDetails._id)}
-//                       className="px-6 py-2.5 border border-rose-200 text-rose-600 rounded-lg text-sm font-medium hover:bg-rose-50 transition-colors flex items-center justify-center gap-2"
-//                     >
-//                       <span className="material-icons text-sm">cancel</span>
-//                       Cancel Booking
-//                     </button>
-//                   </div>
-//                 )}
+//                   {bookingDetails.bookingCompleted && (
+//                     <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200 flex items-center gap-2">
+//                       <span className="material-icons text-emerald-600">check_circle</span>
+//                       <span className="text-sm text-emerald-700">This booking has been completed successfully.</span>
+//                     </div>
+//                   )}
 
-//                 {bookingDetails.bookingCompleted && (
-//                   <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200 flex items-center gap-2">
-//                     <span className="material-icons text-emerald-600">check_circle</span>
-//                     <span className="text-sm text-emerald-700">This booking has been completed successfully.</span>
-//                   </div>
-//                 )}
-
-//                 {bookingDetails.isbookingcancel && (
-//                   <div className="bg-rose-50 p-4 rounded-lg border border-rose-200 flex items-center gap-2">
-//                     <span className="material-icons text-rose-600">cancel</span>
-//                     <span className="text-sm text-rose-700">This booking has been cancelled.</span>
-//                   </div>
-//                 )}
-//               </div>
-//             )}
-//           </div>
-//         </div>
-//       )}
-
-//       {/* ROOM BOOKINGS TAB */}
-//       {activeTab === 'room' && (
-//         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-//           <div className="flex items-center gap-2 mb-4">
-//             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-//               <span className="material-icons text-blue-600">meeting_room</span>
+//                   {bookingDetails.isbookingcancel && (
+//                     <div className="bg-rose-50 p-4 rounded-lg border border-rose-200 flex items-center gap-2">
+//                       <span className="material-icons text-rose-600">cancel</span>
+//                       <span className="text-sm text-rose-700">This booking has been cancelled.</span>
+//                     </div>
+//                   )}
+//                 </div>
+//               )}
 //             </div>
-//             <h2 className="text-lg font-semibold text-slate-800">Bookings by Room</h2>
 //           </div>
-          
-//           <div className="flex flex-col md:flex-row gap-4 mb-6">
-//             <select
-//               className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
-//               value={selectedRoom}
-//               onChange={(e) => {
-//                 setSelectedRoom(e.target.value);
-//                 fetchBookingsByRoom(e.target.value);
-//               }}
-//             >
-//               <option value="">Select a room...</option>
-//               {rooms.map((room) => (
-//                 <option key={room._id} value={room._id}>
-//                   {room.title} - {room.isAvailable ? 'Available' : 'Booked'} - {formatCurrency(room.pricePerDay)}/night
-//                 </option>
-//               ))}
-//             </select>
-//           </div>
+//         )}
 
-//           {roomBookings.length > 0 ? (
-//             <div className="space-y-3">
-//               {roomBookings.map((booking) => (
-//                 <div key={booking._id} className="bg-slate-50 p-4 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors">
-//                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-//                     <div className="flex-1">
-//                       <div className="flex items-center gap-2 mb-2">
-//                         <span className="text-xs font-mono text-blue-600 bg-blue-100 px-2 py-1 rounded">
-//                           #{booking._id.slice(-8)}
-//                         </span>
-//                         {getStatusBadge(booking)}
-//                       </div>
-//                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-//                         <div>
-//                           <p className="text-sm font-medium text-slate-800">Guest: {booking.userId?.name}</p>
-//                           <p className="text-xs text-slate-500 mt-1">
-//                             {formatDate(booking.bookingStartDate)} - {formatDate(booking.bookingEndDate)}
-//                           </p>
+//         {/* ROOM BOOKINGS TAB */}
+//         {activeTab === 'room' && (
+//           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+//             <div className="flex items-center gap-2 mb-4">
+//               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+//                 <span className="material-icons text-blue-600">meeting_room</span>
+//               </div>
+//               <h2 className="text-lg font-semibold text-slate-800">Bookings by Room</h2>
+//             </div>
+            
+//             <div className="flex flex-col md:flex-row gap-4 mb-6">
+//               <select
+//                 className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+//                 value={selectedRoom}
+//                 onChange={(e) => {
+//                   setSelectedRoom(e.target.value);
+//                   fetchBookingsByRoom(e.target.value);
+//                 }}
+//               >
+//                 <option value="">Select a room...</option>
+//                 {rooms.map((room) => (
+//                   <option key={room._id} value={room._id}>
+//                     {room.title} - {room.isAvailable ? 'Available' : 'Booked'} - {formatCurrency(room.pricePerDay)}/night
+//                   </option>
+//                 ))}
+//               </select>
+//             </div>
+
+//             {roomBookings.length > 0 ? (
+//               <div className="space-y-3">
+//                 {roomBookings.map((booking) => {
+//                   const totalAmount = booking.roomId?.pricePerDay * 
+//                     Math.ceil((new Date(booking.bookingEndDate) - new Date(booking.bookingStartDate)) / (1000 * 3600 * 24));
+//                   const remainingAmount = totalAmount - (booking.advance || 0);
+                  
+//                   return (
+//                     <div key={booking._id} className="bg-slate-50 p-4 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors">
+//                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+//                         <div className="flex-1">
+//                           <div className="flex items-center gap-2 mb-2">
+//                             <span className="text-xs font-mono text-blue-600 bg-blue-100 px-2 py-1 rounded">
+//                               #{booking._id.slice(-8)}
+//                             </span>
+//                             {getStatusBadge(booking)}
+//                             {booking.advance > 0 && (
+//                               <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+//                                 Advance: {formatCurrency(booking.advance)}
+//                               </span>
+//                             )}
+//                           </div>
+//                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+//                             <div>
+//                               <p className="text-sm font-medium text-slate-800">Guest: {booking.userId?.name}</p>
+//                               <p className="text-xs text-slate-500 mt-1">
+//                                 {formatDate(booking.bookingStartDate)} - {formatDate(booking.bookingEndDate)}
+//                               </p>
+//                             </div>
+//                             <div className="md:text-right">
+//                               {booking.amount && (
+//                                 <>
+//                                   <p className="text-sm font-semibold text-slate-800">
+//                                     Total: {formatCurrency(totalAmount)}
+//                                   </p>
+//                                   {booking.advance > 0 && (
+//                                     <p className="text-xs text-blue-600">
+//                                       Paid: {formatCurrency(booking.advance)} | Due: {formatCurrency(remainingAmount)}
+//                                     </p>
+//                                   )}
+//                                 </>
+//                               )}
+//                             </div>
+//                           </div>
 //                         </div>
-//                         <div className="md:text-right">
-//                           {booking.amount && (
-//                             <p className="text-sm font-semibold text-slate-800">
-//                               {formatCurrency(booking.amount)}
-//                             </p>
-//                           )}
-//                         </div>
+//                         <button
+//                           onClick={() => {
+//                             setActiveTab('view');
+//                             setSearchBookingId(booking._id);
+//                             toast.info('Loading booking details...', {
+//                               position: "top-right",
+//                               autoClose: 2000,
+//                             });
+//                             setTimeout(() => fetchBookingById(booking._id), 100);
+//                           }}
+//                           className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1 self-start shadow-sm"
+//                         >
+//                           <span className="material-icons text-sm">visibility</span>
+//                           View Details
+//                         </button>
 //                       </div>
 //                     </div>
-//                     <button
-//                       onClick={() => {
-//                         setActiveTab('view');
-//                         setSearchBookingId(booking._id);
-//                         setTimeout(() => fetchBookingById(booking._id), 100);
-//                       }}
-//                       className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1 self-start shadow-sm"
-//                     >
-//                       <span className="material-icons text-sm">visibility</span>
-//                       View Details
-//                     </button>
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
-//           ) : selectedRoom ? (
-//             <div className="text-center py-8 bg-slate-50 rounded-lg border border-slate-200">
-//               <span className="material-icons text-4xl text-slate-300 mb-2">history</span>
-//               <p className="text-slate-500">No bookings found for this room.</p>
-//             </div>
-//           ) : null}
-//         </div>
-//       )}
-//     </div>
+//                   );
+//                 })}
+//               </div>
+//             ) : selectedRoom ? (
+//               <div className="text-center py-8 bg-slate-50 rounded-lg border border-slate-200">
+//                 <span className="material-icons text-4xl text-slate-300 mb-2">history</span>
+//                 <p className="text-slate-500">No bookings found for this room.</p>
+//               </div>
+//             ) : null}
+//           </div>
+//         )}
+//       </div>
+//     </>
 //   );
 // };
 
 // export default Bookings;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 import React, { useState, useEffect } from 'react';
@@ -967,12 +2529,6 @@ const Bookings = () => {
       setUser(parsedUser);
     }
     fetchAllRooms();
-    
-    // Welcome toast
-    // toast.info('👋 Welcome to Bookings Management', {
-    //   position: "top-right",
-    //   autoClose: 3000,
-    // });
   }, []);
 
   // GET ALL ROOMS - /api/room/
@@ -986,10 +2542,6 @@ const Bookings = () => {
       const data = await response.json();
       if (response.ok) {
         setRooms(data);
-        // toast.success(`✅ Loaded ${data.length} rooms successfully`, {
-        //   position: "top-right",
-        //   autoClose: 2000,
-        // });
       }
     } catch (error) {
       console.error('Error fetching rooms:', error);
@@ -1170,14 +2722,20 @@ const Bookings = () => {
 
       if (response.ok) {
         setActiveBookingCheck(data);
-        // Auto-populate checkout data with calculated amount
+        
+        // Calculate amount after deducting advance
+        let finalAmount = data.amount;
+        if (bookingDetails?.advance > 0) {
+          finalAmount = data.amount - bookingDetails.advance;
+        }
+        
         setCheckoutData(prev => ({
           ...prev,
           bookingId: bookingId,
-          amount: data.amount.toFixed(2)
+          amount: finalAmount.toFixed(2)
         }));
         
-        toast.info(`💰 Total amount due: $${data.amount.toFixed(2)}`, {
+        toast.info(`💰 Total amount due: $${finalAmount.toFixed(2)}`, {
           position: "top-right",
           autoClose: 5000,
         });
@@ -1227,6 +2785,12 @@ const Bookings = () => {
             <span>Amount: ${checkoutData.amount}</span>
             <br />
             <span>Method: {checkoutData.payment_method}</span>
+            {bookingDetails?.advance > 0 && (
+              <>
+                <br />
+                <span className="text-xs">(Advance paid: ${bookingDetails.advance})</span>
+              </>
+            )}
           </div>,
           {
             position: "top-right",
@@ -1263,53 +2827,7 @@ const Bookings = () => {
   };
 
   // 4. GET BOOKINGS BY ROOM ID - GET /api/booking/room/:roomId
-  // const fetchBookingsByRoom = async (roomId) => {
-  //   if (!roomId) return;
-    
-  //   const loadingToast = toast.loading('Loading room bookings...', {
-  //     position: "top-right",
-  //   });
-    
-  //   try {
-  //     setLoading(true);
-  //     const response = await fetch(`${BASE_URL}/booking/room/${roomId}`, {
-  //       method: 'GET',
-  //      headers: {
-  //       'Authorization': `Bearer ${localStorage.getItem('token')}`, // Make sure the token is saved in localStorage/sessionStorage or cookies
-  //       'Content-Type': 'application/json'
-  //   },
-  //       credentials: 'include'
-  //     });
-
-  //     const data = await response.json();
-  //     toast.dismiss(loadingToast);
-
-  //     if (response.ok) {
-  //       setRoomBookings(data.bookings || []);
-  //       if (data.bookings?.length > 0) {
-  //         toast.success(`Found ${data.bookings.length} booking(s) for this room`, {
-  //           position: "top-right",
-  //           autoClose: 3000,
-  //         });
-  //       } else {
-  //         toast.info('No bookings found for this room', {
-  //           position: "top-right",
-  //           autoClose: 3000,
-  //         });
-  //       }
-  //     }
-  //   } catch (error) {
-  //     toast.dismiss(loadingToast);
-  //     console.error('Error fetching room bookings:', error);
-  //     toast.error('Failed to load room bookings', {
-  //       position: "top-right",
-  //       autoClose: 3000,
-  //     });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-const fetchBookingsByRoom = async (roomId) => {
+  const fetchBookingsByRoom = async (roomId) => {
     if (!roomId) return;
 
     const loadingToast = toast.loading('Loading room bookings...', {
@@ -1320,10 +2838,7 @@ const fetchBookingsByRoom = async (roomId) => {
         setLoading(true);
         const response = await fetch(`${BASE_URL}/booking/room/${roomId}`, {
             method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                'Content-Type': 'application/json'
-            },
+            headers: getAuthHeaders(),
             credentials: 'include'
         });
 
@@ -1332,7 +2847,6 @@ const fetchBookingsByRoom = async (roomId) => {
 
         if (response.ok) {
             if (Array.isArray(data.bookings)) {
-                // If bookings is an array, use it as it is
                 setRoomBookings(data.bookings || []);
                 if (data.bookings?.length > 0) {
                     toast.success(`Found ${data.bookings.length} booking(s) for this room`, {
@@ -1346,7 +2860,6 @@ const fetchBookingsByRoom = async (roomId) => {
                     });
                 }
             } else if (data.booking) {
-                // If a single booking is returned, treat it as an array of one booking
                 setRoomBookings([data.booking]);
                 toast.success('Found 1 booking for this room', {
                     position: "top-right",
@@ -1368,7 +2881,6 @@ const fetchBookingsByRoom = async (roomId) => {
 
   // 5. CANCEL BOOKING - PUT /api/booking/cancel/:id
   const cancelBooking = async (bookingId) => {
-    // Custom confirmation toast
     const cancelConfirm = window.confirm('Are you sure you want to cancel this booking?');
     if (!cancelConfirm) return;
 
@@ -1447,6 +2959,28 @@ const fetchBookingsByRoom = async (roomId) => {
     }).format(amount || 0);
   };
 
+  // FIXED: Calculate total amount with advance deduction
+  const calculateTotalAmount = () => {
+    if (!bookingDetails || !bookingDetails.roomId) return 0;
+    
+    const startDate = new Date(bookingDetails.bookingStartDate);
+    const endDate = new Date(bookingDetails.bookingEndDate);
+    const diffInTime = endDate.getTime() - startDate.getTime();
+    const diffInDays = diffInTime / (1000 * 3600 * 24);
+    
+    const roomPrice = bookingDetails.roomId.pricePerDay || 0;
+    const totalAmount = roomPrice * diffInDays;
+    
+    return totalAmount;
+  };
+
+  // FIXED: Calculate remaining amount after advance
+  const calculateRemainingAmount = () => {
+    const totalAmount = calculateTotalAmount();
+    const advance = bookingDetails?.advance || 0;
+    return totalAmount - advance;
+  };
+
   const getStatusBadge = (booking) => {
     if (booking.isbookingcancel) {
       return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">Cancelled</span>;
@@ -1455,9 +2989,9 @@ const fetchBookingsByRoom = async (roomId) => {
       return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Completed</span>;
     }
     if (booking.payment_status) {
-      return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">Confirmed</span>;
+      return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">Confirmed</span>;
     }
-    return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Pending</span>;
+    return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">Pending</span>;
   };
 
   const clearView = () => {
@@ -1470,7 +3004,6 @@ const fetchBookingsByRoom = async (roomId) => {
     });
   };
 
-  // Function to handle check booking by ID
   const handleCheckBooking = () => {
     if (!searchBookingId) {
       toast.warning('Please enter a booking ID', {
@@ -1485,7 +3018,6 @@ const fetchBookingsByRoom = async (roomId) => {
 
   return (
     <>
-      {/* Toast Container */}
       <ToastContainer
         position="top-right"
         autoClose={5000}
@@ -1503,14 +3035,16 @@ const fetchBookingsByRoom = async (roomId) => {
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-semibold text-slate-800">Bookings Management</h1>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-red-600 bg-clip-text text-transparent">
+            Bookings Management
+          </h1>
           <button
             onClick={() => {
               toast(
                 <div>
                   <strong>ℹ️ Quick Tips</strong>
                   <br />
-                  • Use the blue buttons to navigate
+                  • Use the yellow/red buttons to navigate
                   <br />
                   • Enter Booking ID to view details
                   <br />
@@ -1523,16 +3057,16 @@ const fetchBookingsByRoom = async (roomId) => {
                 }
               );
             }}
-            className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-sm hover:bg-slate-200 transition-colors flex items-center gap-1"
+            className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200 transition-colors flex items-center gap-1"
           >
             <span className="material-icons text-sm">help</span>
             Help
           </button>
         </div>
 
-        {/* VISIBLE COLORFUL ACTION BUTTONS */}
+        {/* VISIBLE COLORFUL ACTION BUTTONS - UPDATED TO YELLOW/RED */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {/* Create Booking Button - BLUE */}
+          {/* Create Booking Button - YELLOW */}
           <button
             onClick={() => {
               setActiveTab('create');
@@ -1543,38 +3077,38 @@ const fetchBookingsByRoom = async (roomId) => {
             }}
             className={`p-6 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 group ${
               activeTab === 'create'
-                ? 'bg-blue-600 border-blue-600 shadow-lg'
-                : 'bg-white border-blue-500 hover:bg-blue-50 hover:border-blue-600 hover:shadow-lg'
+                ? 'bg-yellow-500 border-yellow-500 shadow-lg'
+                : 'bg-white border-yellow-500 hover:bg-yellow-50 hover:border-yellow-600 hover:shadow-lg'
             }`}
           >
             <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-200 ${
               activeTab === 'create'
                 ? 'bg-white scale-110'
-                : 'bg-blue-100 group-hover:bg-blue-600 group-hover:scale-110'
+                : 'bg-yellow-100 group-hover:bg-yellow-500 group-hover:scale-110'
             }`}>
               <span className={`material-icons text-3xl ${
-                activeTab === 'create' ? 'text-blue-600' : 'text-blue-600 group-hover:text-white'
+                activeTab === 'create' ? 'text-yellow-500' : 'text-yellow-500 group-hover:text-white'
               }`}>add_circle</span>
             </div>
             <div className="text-left flex-1">
               <h3 className={`text-lg font-semibold transition-colors ${
-                activeTab === 'create' ? 'text-white' : 'text-slate-800 group-hover:text-blue-700'
+                activeTab === 'create' ? 'text-white' : 'text-gray-800 group-hover:text-yellow-700'
               }`}>Create New Booking</h3>
               <p className={`text-sm ${
-                activeTab === 'create' ? 'text-blue-100' : 'text-slate-500 group-hover:text-blue-600'
+                activeTab === 'create' ? 'text-yellow-100' : 'text-gray-500 group-hover:text-yellow-600'
               }`}>Book a room for your stay</p>
             </div>
             {activeTab === 'create' && (
-              <span className="bg-white text-blue-600 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm">
+              <span className="bg-white text-yellow-600 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm">
                 Active
               </span>
             )}
             <span className={`material-icons ${
-              activeTab === 'create' ? 'text-white translate-x-1' : 'text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1'
+              activeTab === 'create' ? 'text-white translate-x-1' : 'text-gray-400 group-hover:text-yellow-600 group-hover:translate-x-1'
             } transition-transform`}>arrow_forward</span>
           </button>
 
-          {/* View Booking & Bill Button - GREEN */}
+          {/* View Booking & Bill Button - RED */}
           <button
             onClick={() => {
               setActiveTab('view');
@@ -1585,56 +3119,56 @@ const fetchBookingsByRoom = async (roomId) => {
             }}
             className={`p-6 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 group ${
               activeTab === 'view'
-                ? 'bg-emerald-600 border-emerald-600 shadow-lg'
-                : 'bg-white border-emerald-500 hover:bg-emerald-50 hover:border-emerald-600 hover:shadow-lg'
+                ? 'bg-red-500 border-red-500 shadow-lg'
+                : 'bg-white border-red-500 hover:bg-red-50 hover:border-red-600 hover:shadow-lg'
             }`}
           >
             <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-200 ${
               activeTab === 'view'
                 ? 'bg-white scale-110'
-                : 'bg-emerald-100 group-hover:bg-emerald-600 group-hover:scale-110'
+                : 'bg-red-100 group-hover:bg-red-500 group-hover:scale-110'
             }`}>
               <span className={`material-icons text-3xl ${
-                activeTab === 'view' ? 'text-emerald-600' : 'text-emerald-600 group-hover:text-white'
+                activeTab === 'view' ? 'text-red-500' : 'text-red-500 group-hover:text-white'
               }`}>receipt</span>
             </div>
             <div className="text-left flex-1">
               <h3 className={`text-lg font-semibold transition-colors ${
-                activeTab === 'view' ? 'text-white' : 'text-slate-800 group-hover:text-emerald-700'
+                activeTab === 'view' ? 'text-white' : 'text-gray-800 group-hover:text-red-700'
               }`}>View Booking & Bill</h3>
               <p className={`text-sm ${
-                activeTab === 'view' ? 'text-emerald-100' : 'text-slate-500 group-hover:text-emerald-600'
+                activeTab === 'view' ? 'text-red-100' : 'text-gray-500 group-hover:text-red-600'
               }`}>Check booking details and payment</p>
             </div>
             {activeTab === 'view' && (
-              <span className="bg-white text-emerald-600 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm">
+              <span className="bg-white text-red-600 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm">
                 Active
               </span>
             )}
             <span className={`material-icons ${
-              activeTab === 'view' ? 'text-white translate-x-1' : 'text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1'
+              activeTab === 'view' ? 'text-white translate-x-1' : 'text-gray-400 group-hover:text-red-600 group-hover:translate-x-1'
             } transition-transform`}>arrow_forward</span>
           </button>
         </div>
 
-        {/* Quick Check Booking by ID - BLUE */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-5 mb-8">
+        {/* Quick Check Booking by ID - YELLOW/RED GRADIENT */}
+        <div className="bg-gradient-to-r from-yellow-500 to-red-500 rounded-xl shadow-lg p-5 mb-8">
           <div className="flex flex-col md:flex-row items-center gap-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-md">
-                <span className="material-icons text-blue-600">search</span>
+                <span className="material-icons text-red-500">search</span>
               </div>
               <div>
                 <h3 className="font-semibold text-white">Quick Booking Lookup</h3>
-                <p className="text-xs text-blue-100">Enter booking ID to view details</p>
+                <p className="text-xs text-yellow-100">Enter booking ID to view details</p>
               </div>
             </div>
             <div className="flex-1 relative">
-              <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">fingerprint</span>
+              <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">fingerprint</span>
               <input
                 type="text"
                 placeholder="Enter Booking ID (e.g. 698ed232b46aa278e6f9449b)"
-                className="w-full pl-10 pr-4 py-3 bg-white border-0 rounded-lg text-sm focus:ring-2 focus:ring-white/50 outline-none shadow-md"
+                className="w-full pl-10 pr-4 py-3 bg-white border-0 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500/50 outline-none shadow-md"
                 value={searchBookingId}
                 onChange={(e) => setSearchBookingId(e.target.value)}
               />
@@ -1642,7 +3176,7 @@ const fetchBookingsByRoom = async (roomId) => {
             <button
               onClick={handleCheckBooking}
               disabled={loading}
-              className="px-6 py-3 bg-white text-blue-700 rounded-lg text-sm font-bold hover:bg-blue-50 transition-colors flex items-center gap-2 whitespace-nowrap shadow-lg hover:shadow-xl"
+              className="px-6 py-3 bg-white text-red-600 rounded-lg text-sm font-bold hover:bg-yellow-50 transition-colors flex items-center gap-2 whitespace-nowrap shadow-lg hover:shadow-xl"
             >
               <span className="material-icons text-sm">visibility</span>
               Check Booking
@@ -1650,15 +3184,15 @@ const fetchBookingsByRoom = async (roomId) => {
           </div>
         </div>
 
-        {/* Tabs */}
-        {/* <div className="border-b border-slate-200 mb-6 overflow-x-auto">
+        {/* Tabs - UPDATED TO YELLOW/RED */}
+        <div className="border-b border-gray-200 mb-6 overflow-x-auto">
           <nav className="flex gap-6 min-w-max">
             <button
               onClick={() => setActiveTab('create')}
               className={`pb-3 px-1 text-sm font-medium transition-colors relative ${
                 activeTab === 'create'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-slate-500 hover:text-slate-700'
+                  ? 'text-yellow-600 border-b-2 border-yellow-600'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               Create Booking
@@ -1667,85 +3201,49 @@ const fetchBookingsByRoom = async (roomId) => {
               onClick={() => setActiveTab('view')}
               className={`pb-3 px-1 text-sm font-medium transition-colors relative ${
                 activeTab === 'view'
-                  ? 'text-emerald-600 border-b-2 border-emerald-600'
-                  : 'text-slate-500 hover:text-slate-700'
+                  ? 'text-red-600 border-b-2 border-red-600'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               View Booking
             </button>
-            <button
-              onClick={() => setActiveTab('room')}
-              className={`pb-3 px-1 text-sm font-medium transition-colors ${
-                activeTab === 'room'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              Room Bookings
-            </button>
+            
+            {/* Room Bookings - Only show for owners and admins */}
+            {(user.role === 'owner' || user.role === 'admin') && (
+              <button
+                onClick={() => setActiveTab('room')}
+                className={`pb-3 px-1 text-sm font-medium transition-colors ${
+                  activeTab === 'room'
+                    ? 'text-yellow-600 border-b-2 border-yellow-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Room Bookings
+              </button>
+            )}
           </nav>
-        </div> */}
-{/* Tabs */}
-<div className="border-b border-slate-200 mb-6 overflow-x-auto">
-  <nav className="flex gap-6 min-w-max">
-    <button
-      onClick={() => setActiveTab('create')}
-      className={`pb-3 px-1 text-sm font-medium transition-colors relative ${
-        activeTab === 'create'
-          ? 'text-blue-600 border-b-2 border-blue-600'
-          : 'text-slate-500 hover:text-slate-700'
-      }`}
-    >
-      Create Booking
-    </button>
-    <button
-      onClick={() => setActiveTab('view')}
-      className={`pb-3 px-1 text-sm font-medium transition-colors relative ${
-        activeTab === 'view'
-          ? 'text-emerald-600 border-b-2 border-emerald-600'
-          : 'text-slate-500 hover:text-slate-700'
-      }`}
-    >
-      View Booking
-    </button>
-    
-    {/* Room Bookings - Only show for owners and admins, completely hidden for users */}
-    {(user.role === 'owner' || user.role === 'admin') && (
-      <button
-        onClick={() => setActiveTab('room')}
-        className={`pb-3 px-1 text-sm font-medium transition-colors ${
-          activeTab === 'room'
-            ? 'text-blue-600 border-b-2 border-blue-600'
-            : 'text-slate-500 hover:text-slate-700'
-        }`}
-      >
-        Room Bookings
-      </button>
-    )}
-  </nav>
-</div>
+        </div>
 
-
-        {/* CREATE BOOKING TAB */}
+        {/* CREATE BOOKING TAB - UPDATED TO YELLOW THEME */}
         {activeTab === 'create' && (
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <span className="material-icons text-blue-600">add_circle</span>
+              <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <span className="material-icons text-yellow-600">add_circle</span>
               </div>
-              <h2 className="text-lg font-semibold text-slate-800">Create New Booking</h2>
+              <h2 className="text-lg font-semibold text-gray-800">Create New Booking</h2>
             </div>
             
             <form onSubmit={createBooking} className="space-y-4 max-w-2xl">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Select Room <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="roomId"
                   value={createForm.roomId}
                   onChange={handleCreateInputChange}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500 outline-none"
                   required
                 >
                   <option value="">Choose a room...</option>
@@ -1756,8 +3254,8 @@ const fetchBookingsByRoom = async (roomId) => {
                   ))}
                 </select>
                 {rooms.filter(room => room.isAvailable).length === 0 && (
-                  <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
-                    <span className="material-icons text-amber-600 text-xs">info</span>
+                  <p className="text-xs text-orange-600 mt-1 flex items-center gap-1">
+                    <span className="material-icons text-orange-600 text-xs">info</span>
                     No rooms available at the moment.
                   </p>
                 )}
@@ -1765,7 +3263,7 @@ const fetchBookingsByRoom = async (roomId) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Check-in Date <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -1773,12 +3271,12 @@ const fetchBookingsByRoom = async (roomId) => {
                     name="bookingStartDate"
                     value={createForm.bookingStartDate}
                     onChange={handleCreateInputChange}
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500 outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Check-out Date <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -1786,18 +3284,17 @@ const fetchBookingsByRoom = async (roomId) => {
                     name="bookingEndDate"
                     value={createForm.bookingEndDate}
                     onChange={handleCreateInputChange}
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500 outline-none"
                     required
                   />
                 </div>
               </div>
 
-              {/* VISIBLE BLUE CREATE BOOKING BUTTON */}
-              <div className="pt-6 border-t border-slate-100">
+              <div className="pt-6 border-t border-gray-100">
                 <button
                   type="submit"
                   disabled={loading || !createForm.roomId || !createForm.bookingStartDate || !createForm.bookingEndDate}
-                  className="w-full md:w-auto px-8 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 group"
+                  className="w-full md:w-auto px-8 py-3.5 bg-gradient-to-r from-yellow-500 to-red-500 hover:from-yellow-600 hover:to-red-600 text-white rounded-lg text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 group"
                 >
                   {loading ? (
                     <>
@@ -1815,43 +3312,43 @@ const fetchBookingsByRoom = async (roomId) => {
                 
                 {/* Form Status Messages */}
                 {!createForm.roomId && (
-                  <p className="text-xs text-amber-600 mt-3 flex items-center gap-1">
-                    <span className="material-icons text-amber-600 text-xs">info</span>
+                  <p className="text-xs text-orange-600 mt-3 flex items-center gap-1">
+                    <span className="material-icons text-orange-600 text-xs">info</span>
                     Please select a room to continue
                   </p>
                 )}
                 {createForm.roomId && (!createForm.bookingStartDate || !createForm.bookingEndDate) && (
-                  <p className="text-xs text-amber-600 mt-3 flex items-center gap-1">
-                    <span className="material-icons text-amber-600 text-xs">info</span>
+                  <p className="text-xs text-orange-600 mt-3 flex items-center gap-1">
+                    <span className="material-icons text-orange-600 text-xs">info</span>
                     Please select check-in and check-out dates
                   </p>
                 )}
                 {createForm.roomId && createForm.bookingStartDate && createForm.bookingEndDate && (
                   <p className="text-xs text-green-600 mt-3 flex items-center gap-1">
                     <span className="material-icons text-green-600 text-xs">check_circle</span>
-                    Ready to create booking! Click the blue button above.
+                    Ready to create booking! Click the yellow-red button above.
                   </p>
                 )}
               </div>
             </form>
 
-            {/* Quick Tips - BLUE */}
-            <div className="mt-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h4 className="text-xs font-semibold text-blue-800 uppercase tracking-wider mb-2 flex items-center gap-1">
-                <span className="material-icons text-blue-600 text-sm">tips_and_updates</span>
+            {/* Quick Tips - YELLOW */}
+            <div className="mt-6 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+              <h4 className="text-xs font-semibold text-yellow-800 uppercase tracking-wider mb-2 flex items-center gap-1">
+                <span className="material-icons text-yellow-600 text-sm">tips_and_updates</span>
                 Booking Tips
               </h4>
-              <ul className="text-xs text-blue-700 space-y-1">
+              <ul className="text-xs text-yellow-700 space-y-1">
                 <li className="flex items-center gap-2">
-                  <span className="w-1 h-1 bg-blue-400 rounded-full"></span>
+                  <span className="w-1 h-1 bg-yellow-400 rounded-full"></span>
                   Make sure to select available rooms only (marked with price)
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1 h-1 bg-blue-400 rounded-full"></span>
+                  <span className="w-1 h-1 bg-yellow-400 rounded-full"></span>
                   Check-in and check-out times are in 24-hour format
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1 h-1 bg-blue-400 rounded-full"></span>
+                  <span className="w-1 h-1 bg-yellow-400 rounded-full"></span>
                   After creation, you'll be redirected to view booking details
                 </li>
               </ul>
@@ -1859,24 +3356,24 @@ const fetchBookingsByRoom = async (roomId) => {
           </div>
         )}
 
-        {/* VIEW BOOKING TAB */}
+        {/* VIEW BOOKING TAB - UPDATED TO RED THEME */}
         {activeTab === 'view' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-                  <span className="material-icons text-emerald-600">receipt</span>
+                <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                  <span className="material-icons text-red-600">receipt</span>
                 </div>
-                <h2 className="text-lg font-semibold text-slate-800">View Booking & Bill</h2>
+                <h2 className="text-lg font-semibold text-gray-800">View Booking & Bill</h2>
               </div>
               
               <div className="flex flex-col md:flex-row gap-4 mb-6">
                 <div className="flex-1 relative">
-                  <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                  <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">search</span>
                   <input
                     type="text"
                     placeholder="Enter Booking ID"
-                    className="w-full pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                    className="w-full pl-10 pr-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-red-500/50 focus:border-red-500 outline-none"
                     value={searchBookingId}
                     onChange={(e) => setSearchBookingId(e.target.value)}
                   />
@@ -1885,7 +3382,7 @@ const fetchBookingsByRoom = async (roomId) => {
                   <button
                     onClick={() => fetchBookingById()}
                     disabled={loading}
-                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors flex items-center gap-1 shadow-md"
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-bold hover:bg-red-600 transition-colors flex items-center gap-1 shadow-md"
                   >
                     <span className="material-icons text-sm">search</span>
                     Search
@@ -1893,7 +3390,7 @@ const fetchBookingsByRoom = async (roomId) => {
                   {bookingDetails && (
                     <button
                       onClick={clearView}
-                      className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
+                      className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
                     >
                       Clear
                     </button>
@@ -1904,65 +3401,97 @@ const fetchBookingsByRoom = async (roomId) => {
               {bookingDetails && (
                 <div className="space-y-6">
                   {/* Booking Details */}
-                  <div className="bg-slate-50 p-6 rounded-lg border border-slate-200">
+                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <p className="text-xs text-slate-500">Booking ID</p>
-                        <p className="text-lg font-semibold text-blue-600 font-mono">#{bookingDetails._id.slice(-8)}</p>
-                        <p className="text-xs text-slate-400 mt-1 font-mono">{bookingDetails._id}</p>
+                        <p className="text-xs text-gray-500">Booking ID</p>
+                        <p className="text-lg font-semibold text-red-600 font-mono">#{bookingDetails._id.slice(-8)}</p>
+                        <p className="text-xs text-gray-400 mt-1 font-mono">{bookingDetails._id}</p>
                       </div>
                       {getStatusBadge(bookingDetails)}
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-3">
-                        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Guest Information</h4>
+                        <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Guest Information</h4>
                         <div>
-                          <p className="font-medium text-slate-800">{bookingDetails.userId?.name}</p>
-                          <p className="text-xs text-slate-500">{bookingDetails.userId?.email}</p>
+                          <p className="font-medium text-gray-800">{bookingDetails.userId?.name}</p>
+                          <p className="text-xs text-gray-500">{bookingDetails.userId?.email}</p>
                         </div>
                       </div>
                       
                       <div className="space-y-3">
-                        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Room Information</h4>
+                        <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Room Information</h4>
                         <div>
-                          <p className="font-medium text-slate-800">{bookingDetails.roomId?.title}</p>
-                          <p className="text-xs text-slate-500">{bookingDetails.roomId?.description}</p>
-                          <p className="text-xs text-slate-500 mt-1">
+                          <p className="font-medium text-gray-800">{bookingDetails.roomId?.title}</p>
+                          <p className="text-xs text-gray-500">{bookingDetails.roomId?.description}</p>
+                          <p className="text-xs text-gray-500 mt-1">
                             {bookingDetails.roomId?.roomSize}m² • {bookingDetails.roomId?.noOfBeds} bed(s) • Max {bookingDetails.roomId?.maxOccupancy} guests
                           </p>
                         </div>
                       </div>
                       
                       <div className="space-y-3">
-                        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Booking Timeline</h4>
+                        <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Booking Timeline</h4>
                         <div className="space-y-1">
-                          <p className="text-sm"><span className="text-slate-500">Check-in:</span> {formatDate(bookingDetails.bookingStartDate)}</p>
-                          <p className="text-sm"><span className="text-slate-500">Check-out:</span> {formatDate(bookingDetails.bookingEndDate)}</p>
+                          <p className="text-sm"><span className="text-gray-500">Check-in:</span> {formatDate(bookingDetails.bookingStartDate)}</p>
+                          <p className="text-sm"><span className="text-gray-500">Check-out:</span> {formatDate(bookingDetails.bookingEndDate)}</p>
                           {bookingDetails.checkIn && (
-                            <p className="text-sm"><span className="text-slate-500">Actual Check-in:</span> {formatDate(bookingDetails.checkIn)}</p>
+                            <p className="text-sm"><span className="text-gray-500">Actual Check-in:</span> {formatDate(bookingDetails.checkIn)}</p>
                           )}
                           {bookingDetails.checkOut && (
-                            <p className="text-sm"><span className="text-slate-500">Actual Check-out:</span> {formatDate(bookingDetails.checkOut)}</p>
+                            <p className="text-sm"><span className="text-gray-500">Actual Check-out:</span> {formatDate(bookingDetails.checkOut)}</p>
                           )}
                         </div>
                       </div>
                       
                       <div className="space-y-3">
-                        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Payment Details</h4>
-                        <div className="space-y-1">
-                          <p className="text-sm">
-                            <span className="text-slate-500">Amount:</span>{' '}
-                            <span className="font-semibold text-slate-800">{formatCurrency(bookingDetails.amount)}</span>
-                          </p>
-                          <p className="text-sm">
-                            <span className="text-slate-500">Payment Status:</span>{' '}
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                              bookingDetails.payment_status ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                            }`}>
-                              {bookingDetails.payment_status ? 'Paid' : 'Pending'}
+                        <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Payment Details</h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Room Price/night:</span>
+                            <span className="text-sm font-medium text-gray-800">{formatCurrency(bookingDetails.roomId?.pricePerDay)}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Total Days:</span>
+                            <span className="text-sm font-medium text-gray-800">
+                              {Math.ceil((new Date(bookingDetails.bookingEndDate) - new Date(bookingDetails.bookingStartDate)) / (1000 * 3600 * 24))} days
                             </span>
-                          </p>
+                          </div>
+                          <div className="flex justify-between items-center border-t border-gray-200 pt-2 mt-2">
+                            <span className="text-sm font-semibold text-gray-700">Total Amount:</span>
+                            <span className="text-base font-bold text-red-600">{formatCurrency(calculateTotalAmount())}</span>
+                          </div>
+                          
+                          {/* Advance Payment Section */}
+                          {bookingDetails.advance > 0 && (
+                            <>
+                              <div className="flex justify-between items-center bg-yellow-50 p-2 rounded-lg mt-2">
+                                <span className="text-sm text-yellow-700">
+                                  <span className="font-semibold">Advance Paid:</span>
+                                  {bookingDetails.isadvance && (
+                                    <span className="ml-2 text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">Paid</span>
+                                  )}
+                                </span>
+                                <span className="text-base font-bold text-yellow-600">- {formatCurrency(bookingDetails.advance)}</span>
+                              </div>
+                              <div className="flex justify-between items-center bg-red-50 p-2 rounded-lg">
+                                <span className="text-sm font-semibold text-red-700">Remaining Amount:</span>
+                                <span className="text-base font-bold text-red-600">{formatCurrency(calculateRemainingAmount())}</span>
+                              </div>
+                            </>
+                          )}
+                          
+                          <div className="mt-2">
+                            <p className="text-sm">
+                              <span className="text-gray-500">Payment Status:</span>{' '}
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ml-2 ${
+                                bookingDetails.payment_status ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                              }`}>
+                                {bookingDetails.payment_status ? 'Paid' : 'Pending'}
+                              </span>
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1970,32 +3499,48 @@ const fetchBookingsByRoom = async (roomId) => {
 
                   {/* Active Booking Check - Bill Details */}
                   {activeBookingCheck && !bookingDetails.bookingCompleted && !bookingDetails.isbookingcancel && (
-                    <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-                      <h4 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-2">
-                        <span className="material-icons text-blue-600 text-sm">receipt</span>
+                    <div className="bg-red-50 p-6 rounded-lg border border-red-200">
+                      <h4 className="text-sm font-semibold text-red-800 mb-3 flex items-center gap-2">
+                        <span className="material-icons text-red-600 text-sm">receipt</span>
                         Current Booking Summary
                       </h4>
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <div className="bg-white p-3 rounded-lg border border-blue-100">
-                          <p className="text-xs text-slate-500">Total Hours</p>
-                          <p className="text-xl font-bold text-blue-700">{activeBookingCheck.totalHours.toFixed(1)} hrs</p>
+                        <div className="bg-white p-3 rounded-lg border border-red-100">
+                          <p className="text-xs text-gray-500">Total Hours</p>
+                          <p className="text-xl font-bold text-red-700">{activeBookingCheck.totalHours?.toFixed(1) || 0} hrs</p>
                         </div>
-                        <div className="bg-white p-3 rounded-lg border border-blue-100">
-                          <p className="text-xs text-slate-500">Total Days</p>
-                          <p className="text-xl font-bold text-blue-700">{activeBookingCheck.totalDays} days</p>
+                        <div className="bg-white p-3 rounded-lg border border-red-100">
+                          <p className="text-xs text-gray-500">Total Days</p>
+                          <p className="text-xl font-bold text-red-700">{activeBookingCheck.totalDays || 0} days</p>
                         </div>
-                        <div className="bg-white p-3 rounded-lg border border-blue-100">
-                          <p className="text-xs text-slate-500">Amount Due</p>
-                          <p className="text-xl font-bold text-blue-700">{formatCurrency(activeBookingCheck.amount)}</p>
+                        <div className="bg-white p-3 rounded-lg border border-red-100">
+                          <p className="text-xs text-gray-500">Amount Due</p>
+                          <p className="text-xl font-bold text-red-700">{formatCurrency(activeBookingCheck.amount || 0)}</p>
                         </div>
                       </div>
+
+                      {/* Advance Deduction Summary */}
+                      {bookingDetails.advance > 0 && (
+                        <div className="bg-green-50 p-3 rounded-lg border border-green-200 mb-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-green-700">Advance already paid:</span>
+                            <span className="text-base font-bold text-green-600">{formatCurrency(bookingDetails.advance)}</span>
+                          </div>
+                          <div className="flex justify-between items-center mt-1">
+                            <span className="text-sm text-green-700">Remaining to pay:</span>
+                            <span className="text-base font-bold text-green-600">
+                              {formatCurrency(activeBookingCheck.amount || 0) }
+                            </span>
+                          </div>
+                        </div>
+                      )}
 
                       <div className="flex flex-col sm:flex-row gap-3 mt-4">
                         <button
                           onClick={checkoutBooking}
                           disabled={loading}
-                          className="px-6 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-md"
+                          className="px-6 py-2.5 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-md"
                         >
                           {loading ? (
                             <>
@@ -2005,7 +3550,7 @@ const fetchBookingsByRoom = async (roomId) => {
                           ) : (
                             <>
                               <span className="material-icons text-sm">payment</span>
-                              CHECKOUT NOW
+                              CHECKOUT NOW (Pay {formatCurrency((activeBookingCheck.amount || 0))})
                             </>
                           )}
                         </button>
@@ -2033,9 +3578,9 @@ const fetchBookingsByRoom = async (roomId) => {
                   )}
 
                   {bookingDetails.bookingCompleted && (
-                    <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200 flex items-center gap-2">
-                      <span className="material-icons text-emerald-600">check_circle</span>
-                      <span className="text-sm text-emerald-700">This booking has been completed successfully.</span>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200 flex items-center gap-2">
+                      <span className="material-icons text-green-600">check_circle</span>
+                      <span className="text-sm text-green-700">This booking has been completed successfully.</span>
                     </div>
                   )}
 
@@ -2051,19 +3596,19 @@ const fetchBookingsByRoom = async (roomId) => {
           </div>
         )}
 
-        {/* ROOM BOOKINGS TAB */}
+        {/* ROOM BOOKINGS TAB - UPDATED TO YELLOW THEME */}
         {activeTab === 'room' && (
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <span className="material-icons text-blue-600">meeting_room</span>
+              <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <span className="material-icons text-yellow-600">meeting_room</span>
               </div>
-              <h2 className="text-lg font-semibold text-slate-800">Bookings by Room</h2>
+              <h2 className="text-lg font-semibold text-gray-800">Bookings by Room</h2>
             </div>
             
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <select
-                className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+                className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500 outline-none"
                 value={selectedRoom}
                 onChange={(e) => {
                   setSelectedRoom(e.target.value);
@@ -2081,55 +3626,73 @@ const fetchBookingsByRoom = async (roomId) => {
 
             {roomBookings.length > 0 ? (
               <div className="space-y-3">
-                {roomBookings.map((booking) => (
-                  <div key={booking._id} className="bg-slate-50 p-4 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-xs font-mono text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                            #{booking._id.slice(-8)}
-                          </span>
-                          {getStatusBadge(booking)}
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          <div>
-                            <p className="text-sm font-medium text-slate-800">Guest: {booking.userId?.name}</p>
-                            <p className="text-xs text-slate-500 mt-1">
-                              {formatDate(booking.bookingStartDate)} - {formatDate(booking.bookingEndDate)}
-                            </p>
-                          </div>
-                          <div className="md:text-right">
-                            {booking.amount && (
-                              <p className="text-sm font-semibold text-slate-800">
-                                {formatCurrency(booking.amount)}
-                              </p>
+                {roomBookings.map((booking) => {
+                  const totalAmount = booking.roomId?.pricePerDay * 
+                    Math.ceil((new Date(booking.bookingEndDate) - new Date(booking.bookingStartDate)) / (1000 * 3600 * 24));
+                  const remainingAmount = totalAmount - (booking.advance || 0);
+                  
+                  return (
+                    <div key={booking._id} className="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs font-mono text-red-600 bg-red-100 px-2 py-1 rounded">
+                              #{booking._id.slice(-8)}
+                            </span>
+                            {getStatusBadge(booking)}
+                            {booking.advance > 0 && (
+                              <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
+                                Advance: {formatCurrency(booking.advance)}
+                              </span>
                             )}
                           </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div>
+                              <p className="text-sm font-medium text-gray-800">Guest: {booking.userId?.name}</p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {formatDate(booking.bookingStartDate)} - {formatDate(booking.bookingEndDate)}
+                              </p>
+                            </div>
+                            <div className="md:text-right">
+                              {booking.amount && (
+                                <>
+                                  <p className="text-sm font-semibold text-gray-800">
+                                    Total: {formatCurrency(totalAmount)}
+                                  </p>
+                                  {booking.advance > 0 && (
+                                    <p className="text-xs text-yellow-600">
+                                      Paid: {formatCurrency(booking.advance)} | Due: {formatCurrency(remainingAmount)}
+                                    </p>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </div>
                         </div>
+                        <button
+                          onClick={() => {
+                            setActiveTab('view');
+                            setSearchBookingId(booking._id);
+                            toast.info('Loading booking details...', {
+                              position: "top-right",
+                              autoClose: 2000,
+                            });
+                            setTimeout(() => fetchBookingById(booking._id), 100);
+                          }}
+                          className="px-3 py-1.5 text-xs bg-gradient-to-r from-yellow-500 to-red-500 text-white rounded-lg hover:from-yellow-600 hover:to-red-600 transition-colors flex items-center gap-1 self-start shadow-sm"
+                        >
+                          <span className="material-icons text-sm">visibility</span>
+                          View Details
+                        </button>
                       </div>
-                      <button
-                        onClick={() => {
-                          setActiveTab('view');
-                          setSearchBookingId(booking._id);
-                          toast.info('Loading booking details...', {
-                            position: "top-right",
-                            autoClose: 2000,
-                          });
-                          setTimeout(() => fetchBookingById(booking._id), 100);
-                        }}
-                        className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1 self-start shadow-sm"
-                      >
-                        <span className="material-icons text-sm">visibility</span>
-                        View Details
-                      </button>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : selectedRoom ? (
-              <div className="text-center py-8 bg-slate-50 rounded-lg border border-slate-200">
-                <span className="material-icons text-4xl text-slate-300 mb-2">history</span>
-                <p className="text-slate-500">No bookings found for this room.</p>
+              <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                <span className="material-icons text-4xl text-gray-300 mb-2">history</span>
+                <p className="text-gray-500">No bookings found for this room.</p>
               </div>
             ) : null}
           </div>

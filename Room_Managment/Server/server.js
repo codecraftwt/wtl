@@ -57,6 +57,7 @@ const bookingroutes = require('./src/Booking/routes/bookingRoute');
 const activebookingroutes = require('./src/ActivBooking/routes/activeBookingRoutes');
 const reviewroutes = require('./src/Review/routes/reviewsRoute');
 const forgotPasswordRoutes = require('./src/User/routes/forgotPasswordRoutes');
+const faqRoutes = require('./src/FAQ/routes/faqRoutes');
 const cors = require('cors');
 dotenv.config();
 
@@ -79,6 +80,7 @@ app.use('/api/booking', bookingroutes);
 app.use('/api/activebooking', activebookingroutes);
 app.use('/api/review', reviewroutes);
 app.use('/api/otp', forgotPasswordRoutes);
+app.use('/api/faq', faqRoutes);
 
 
 

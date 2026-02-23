@@ -14,7 +14,7 @@
 //   const [isSearching, setIsSearching] = useState(false);
 //   const [roomReviews, setRoomReviews] = useState({});
 //   const [loadingReviews, setLoadingReviews] = useState({});
-  
+
 //   // Form states
 //   const [createForm, setCreateForm] = useState({
 //     title: '',
@@ -81,7 +81,7 @@
 //         // Filter rooms by owner ID to show only current owner's rooms
 //         const ownerRooms = data.filter(room => room.ownerId === user.id);
 //         setRooms(ownerRooms);
-        
+
 //         // Fetch reviews for each room
 //         ownerRooms.forEach(room => {
 //           fetchRoomReviews(room._id);
@@ -183,7 +183,7 @@
 
 //       if (roomResponse.ok) {
 //         const roomId = roomData._id || roomData.room?._id;
-        
+
 //         // Then upload images if any
 //         if (roomImages.length > 0 && roomId) {
 //           const uploadResults = await uploadRoomImages(roomId, roomImages);
@@ -221,7 +221,7 @@
 //         });
 //         setRoomImages([]);
 //         setImagePreviews([]);
-        
+
 //         fetchOwnerRooms();
 //         setActiveTab('list');
 //       } else {
@@ -239,7 +239,7 @@
 //   const handleImageSelect = (e) => {
 //     const files = Array.from(e.target.files);
 //     setRoomImages(prev => [...prev, ...files]);
-    
+
 //     // Create previews
 //     const newPreviews = files.map(file => URL.createObjectURL(file));
 //     setImagePreviews(prev => [...prev, ...newPreviews]);
@@ -554,7 +554,7 @@
 //               Refresh
 //             </button>
 //           </div>
-          
+
 //           {loading ? (
 //             <div className="flex justify-center py-12">
 //               <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
@@ -579,7 +579,7 @@
 //                   ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
 //                   : 0;
 //                 const loadingReview = loadingReviews[room._id];
-                
+
 //                 return (
 //                   <div key={room._id} className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
 //                     <div className="h-48 bg-slate-100 relative">
@@ -607,7 +607,7 @@
 //                     <div className="p-4">
 //                       <h3 className="font-semibold text-slate-800 mb-1">{room.title}</h3>
 //                       <p className="text-sm text-slate-500 mb-2 line-clamp-2">{room.description}</p>
-                      
+
 //                       {/* Rating Stars - Real Data */}
 //                       <div className="flex items-center gap-1 mb-2">
 //                         {loadingReview ? (
@@ -692,7 +692,7 @@
 //       {activeTab === 'create' && (
 //         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
 //           <h2 className="text-lg font-semibold text-slate-800 mb-4">Create New Room</h2>
-          
+
 //           <form onSubmit={createRoom} className="space-y-4">
 //             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 //               <div>
@@ -900,7 +900,7 @@
 //       {activeTab === 'upload' && (
 //         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
 //           <h2 className="text-lg font-semibold text-slate-800 mb-4">Upload Additional Images</h2>
-          
+
 //           <form onSubmit={uploadImage} className="max-w-md space-y-4">
 //             <div>
 //               <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -962,7 +962,7 @@
 //       {activeTab === 'search' && (
 //         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
 //           <h2 className="text-lg font-semibold text-slate-800 mb-4">Search Rooms</h2>
-          
+
 //           <div className="flex gap-4 mb-6">
 //             <div className="flex-1 relative">
 //               <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
@@ -1030,7 +1030,7 @@
 //                 <span className="material-icons">close</span>
 //               </button>
 //             </div>
-            
+
 //             <div className="p-6">
 //               {/* Image Gallery */}
 //               {selectedRoom.images && selectedRoom.images.length > 0 && (
@@ -1047,7 +1047,7 @@
 //                   </div>
 //                 </div>
 //               )}
-              
+
 //               <div className="space-y-4">
 //                 <div>
 //                   <h3 className="text-2xl font-bold text-slate-800">{selectedRoom.title}</h3>
@@ -1208,7 +1208,7 @@
 //   const [roomReviews, setRoomReviews] = useState({});
 //   const [loadingReviews, setLoadingReviews] = useState({});
 //   const [useOwnerLocation, setUseOwnerLocation] = useState(true); // Toggle for using owner location
-  
+
 //   // Country, State, City API states
 //   const [countries, setCountries] = useState([]);
 //   const [states, setStates] = useState([]);
@@ -1294,7 +1294,7 @@
 //       });
 
 //       const data = await response.json();
-      
+
 //       if (Array.isArray(data)) {
 //         setCountries(data);
 //         console.log('All Countries loaded:', data.length);
@@ -1314,7 +1314,7 @@
 //       setStates([]);
 //       return;
 //     }
-    
+
 //     try {
 //       setLoadingLocation(true);
 //       const response = await fetch(`https://api.countrystatecity.in/v1/countries/${countryCode}/states`, {
@@ -1325,7 +1325,7 @@
 //       });
 
 //       const data = await response.json();
-      
+
 //       if (Array.isArray(data)) {
 //         setStates(data);
 //         console.log('States loaded:', data.length);
@@ -1347,7 +1347,7 @@
 //       setCities([]);
 //       return;
 //     }
-    
+
 //     try {
 //       setLoadingLocation(true);
 //       const response = await fetch(
@@ -1361,7 +1361,7 @@
 //       );
 
 //       const data = await response.json();
-      
+
 //       if (Array.isArray(data)) {
 //         setCities(data);
 //         console.log('Cities loaded:', data.length);
@@ -1401,7 +1401,7 @@
 //       const data = await response.json();
 //       if (response.ok) {
 //         setOwnerProfile(data);
-        
+
 //         // Update create form with owner's complete location if available
 //         if (data.location) {
 //           setCreateForm(prev => ({
@@ -1457,7 +1457,7 @@
 //         // Filter rooms by owner ID to show only current owner's rooms
 //         const ownerRooms = data.filter(room => room.ownerId === user.id || room.ownerId?._id === user.id);
 //         setRooms(ownerRooms);
-        
+
 //         // Fetch reviews for each room
 //         ownerRooms.forEach(room => {
 //           fetchRoomReviews(room._id);
@@ -1525,7 +1525,7 @@
 //     try {
 //       // Determine which location to send
 //       let roomLocation = createForm.location;
-      
+
 //       // If using owner location, fetch the latest owner profile
 //       if (useOwnerLocation && ownerProfile.location) {
 //         roomLocation = {
@@ -1572,7 +1572,7 @@
 
 //       if (roomResponse.ok) {
 //         const roomId = roomData._id || roomData.room?._id;
-        
+
 //         // Then upload images if any
 //         if (roomImages.length > 0 && roomId) {
 //           const uploadResults = await uploadRoomImages(roomId, roomImages);
@@ -1617,7 +1617,7 @@
 //         setUseOwnerLocation(true);
 //         setRoomImages([]);
 //         setImagePreviews([]);
-        
+
 //         fetchOwnerRooms();
 //         setActiveTab('list');
 //       } else {
@@ -1701,7 +1701,7 @@
 //   const handleImageSelect = (e) => {
 //     const files = Array.from(e.target.files);
 //     setRoomImages(prev => [...prev, ...files]);
-    
+
 //     // Create previews
 //     const newPreviews = files.map(file => URL.createObjectURL(file));
 //     setImagePreviews(prev => [...prev, ...newPreviews]);
@@ -1936,7 +1936,7 @@
 //     setSelectedCity('');
 //     setStates([]);
 //     setCities([]);
-    
+
 //     // Update create form
 //     setCreateForm(prev => ({
 //       ...prev,
@@ -1947,7 +1947,7 @@
 //         city: ''
 //       }
 //     }));
-    
+
 //     if (countryCode) {
 //       fetchStatesByCountry(countryCode);
 //     }
@@ -1958,7 +1958,7 @@
 //     setSelectedState(stateCode);
 //     setSelectedCity('');
 //     setCities([]);
-    
+
 //     // Update create form
 //     setCreateForm(prev => ({
 //       ...prev,
@@ -1968,7 +1968,7 @@
 //         city: ''
 //       }
 //     }));
-    
+
 //     if (selectedCountry && stateCode) {
 //       fetchCitiesByState(selectedCountry, stateCode);
 //     }
@@ -1977,7 +1977,7 @@
 //   const handleCityChange = (e) => {
 //     const cityName = e.target.value;
 //     setSelectedCity(cityName);
-    
+
 //     // Update create form
 //     setCreateForm(prev => ({
 //       ...prev,
@@ -2118,7 +2118,7 @@
 //               Refresh
 //             </button>
 //           </div>
-          
+
 //           {loading ? (
 //             <div className="flex justify-center py-12">
 //               <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
@@ -2143,7 +2143,7 @@
 //                   ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
 //                   : 0;
 //                 const loadingReview = loadingReviews[room._id];
-                
+
 //                 return (
 //                   <div key={room._id} className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
 //                     <div className="h-48 bg-slate-100 relative">
@@ -2171,7 +2171,7 @@
 //                     <div className="p-4">
 //                       <h3 className="font-semibold text-slate-800 mb-1">{room.title}</h3>
 //                       <p className="text-sm text-slate-500 mb-2 line-clamp-2">{room.description}</p>
-                      
+
 //                       {/* Rating Stars */}
 //                       <div className="flex items-center gap-1 mb-2">
 //                         {loadingReview ? (
@@ -2307,7 +2307,7 @@
 //               </div>
 //             </div>
 //           )}
-          
+
 //           <form onSubmit={createRoom} className="space-y-4">
 //             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 //               <div>
@@ -2416,7 +2416,7 @@
 //             {/* Complete Location Section with Dropdowns */}
 //             <div className="border-t border-slate-200 pt-4">
 //               <h3 className="text-md font-semibold text-slate-700 mb-3">Location Details</h3>
-              
+
 //               {/* Country Dropdown */}
 //               <div className="mb-4">
 //                 <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -2510,7 +2510,7 @@
 //                   />
 //                 </div>
 //               </div>
-              
+
 //               {useOwnerLocation && ownerProfile.location && (
 //                 <p className="text-xs text-blue-600 mt-2">
 //                   Using your saved location. Toggle the switch above to edit manually.
@@ -2599,7 +2599,7 @@
 //       {activeTab === 'upload' && (
 //         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
 //           <h2 className="text-lg font-semibold text-slate-800 mb-4">Upload Additional Images</h2>
-          
+
 //           <form onSubmit={uploadImage} className="max-w-md space-y-4">
 //             <div>
 //               <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -2661,7 +2661,7 @@
 //       {activeTab === 'search' && (
 //         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
 //           <h2 className="text-lg font-semibold text-slate-800 mb-4">Search Rooms</h2>
-          
+
 //           <div className="flex gap-4 mb-6">
 //             <div className="flex-1 relative">
 //               <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
@@ -2729,7 +2729,7 @@
 //                 <span className="material-icons">close</span>
 //               </button>
 //             </div>
-            
+
 //             <div className="p-6">
 //               {/* Image Gallery */}
 //               {selectedRoom.images && selectedRoom.images.length > 0 && (
@@ -2746,7 +2746,7 @@
 //                   </div>
 //                 </div>
 //               )}
-              
+
 //               <div className="space-y-4">
 //                 <div>
 //                   <h3 className="text-2xl font-bold text-slate-800">{selectedRoom.title}</h3>
@@ -2898,7 +2898,7 @@
 //                 <span className="material-icons">close</span>
 //               </button>
 //             </div>
-            
+
 //             <div className="p-6">
 //               <form onSubmit={updateRoom} className="space-y-4">
 //                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3008,7 +3008,7 @@
 //                 {/* Edit Location Section */}
 //                 <div className="border-t border-slate-200 pt-4">
 //                   <h3 className="text-md font-semibold text-slate-700 mb-3">Location Details</h3>
-                  
+
 //                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 //                     <div>
 //                       <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -3129,6 +3129,8 @@
 
 
 
+//////New
+
 import React, { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import 'material-icons/iconfont/material-icons.css';
@@ -3136,6 +3138,7 @@ import 'material-icons/iconfont/material-icons.css';
 const OwnerRooms = () => {
   const [activeTab, setActiveTab] = useState('list');
   const [loading, setLoading] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [user, setUser] = useState({});
   const [ownerProfile, setOwnerProfile] = useState({});
@@ -3147,7 +3150,7 @@ const OwnerRooms = () => {
   const [roomReviews, setRoomReviews] = useState({});
   const [loadingReviews, setLoadingReviews] = useState({});
   const [useOwnerLocation, setUseOwnerLocation] = useState(true);
-  
+
   // Country, State, City API states
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
@@ -3194,11 +3197,12 @@ const OwnerRooms = () => {
     }
   });
 
-  // Image upload state for create room
+  // FIXED: Image upload state for create room
   const [roomImages, setRoomImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [imageUploadProgress, setImageUploadProgress] = useState({});
 
-  // Separate image upload for existing rooms
+  // FIXED: Separate image upload for existing rooms
   const [imageUpload, setImageUpload] = useState({
     roomId: '',
     image: null,
@@ -3233,7 +3237,7 @@ const OwnerRooms = () => {
       });
 
       const data = await response.json();
-      
+
       if (Array.isArray(data)) {
         setCountries(data);
         console.log('All Countries loaded:', data.length);
@@ -3253,7 +3257,7 @@ const OwnerRooms = () => {
       setStates([]);
       return;
     }
-    
+
     try {
       setLoadingLocation(true);
       const response = await fetch(`https://api.countrystatecity.in/v1/countries/${countryCode}/states`, {
@@ -3264,7 +3268,7 @@ const OwnerRooms = () => {
       });
 
       const data = await response.json();
-      
+
       if (Array.isArray(data)) {
         setStates(data);
         console.log('States loaded:', data.length);
@@ -3286,7 +3290,7 @@ const OwnerRooms = () => {
       setCities([]);
       return;
     }
-    
+
     try {
       setLoadingLocation(true);
       const response = await fetch(
@@ -3300,7 +3304,7 @@ const OwnerRooms = () => {
       );
 
       const data = await response.json();
-      
+
       if (Array.isArray(data)) {
         setCities(data);
         console.log('Cities loaded:', data.length);
@@ -3339,7 +3343,7 @@ const OwnerRooms = () => {
       const data = await response.json();
       if (response.ok) {
         setOwnerProfile(data);
-        
+
         if (data.location) {
           setCreateForm(prev => ({
             ...prev,
@@ -3392,7 +3396,7 @@ const OwnerRooms = () => {
       if (response.ok) {
         const ownerRooms = data.filter(room => room.ownerId === user.id || room.ownerId?._id === user.id);
         setRooms(ownerRooms);
-        
+
         ownerRooms.forEach(room => {
           fetchRoomReviews(room._id);
         });
@@ -3425,12 +3429,16 @@ const OwnerRooms = () => {
     }
   };
 
-  // FIXED: Upload multiple images function
+  // FIXED: Upload multiple images function with progress tracking
   const uploadRoomImages = async (roomId, images) => {
-    const uploadPromises = images.map(async (image) => {
+    setUploadingImages(true);
+    const uploadPromises = images.map(async (image, index) => {
       const formData = new FormData();
       formData.append('image', image);
       formData.append('roomId', roomId);
+
+      // Update progress for this image
+      setImageUploadProgress(prev => ({ ...prev, [index]: 0 }));
 
       try {
         const response = await fetch(`${BASE_URL}/room/upload-image`, {
@@ -3439,7 +3447,9 @@ const OwnerRooms = () => {
           credentials: 'include',
           body: formData
         });
-        
+
+        setImageUploadProgress(prev => ({ ...prev, [index]: 100 }));
+
         if (response.ok) {
           return await response.json();
         } else {
@@ -3449,15 +3459,18 @@ const OwnerRooms = () => {
         }
       } catch (error) {
         console.error('Error uploading image:', error);
+        setImageUploadProgress(prev => ({ ...prev, [index]: -1 })); // Error state
         return null;
       }
     });
 
     const results = await Promise.all(uploadPromises);
+    setUploadingImages(false);
+    setImageUploadProgress({}); // Clear progress
     return results.filter(result => result && (result.ok !== false || result._id));
   };
 
-  // FIXED: CREATE ROOM WITH IMAGES
+  // FIXED: CREATE ROOM WITH IMAGES - Properly resets all data
   const createRoom = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -3466,7 +3479,7 @@ const OwnerRooms = () => {
     try {
       // Determine which location to use
       let roomLocation = createForm.location;
-      
+
       if (useOwnerLocation && ownerProfile.location) {
         roomLocation = {
           latitude: ownerProfile.location.latitude || 0,
@@ -3511,81 +3524,43 @@ const OwnerRooms = () => {
 
       if (roomResponse.ok) {
         const roomId = roomData._id || roomData.room?._id;
-        
+
         // Then upload images if any
         if (roomImages.length > 0 && roomId) {
           const uploadResults = await uploadRoomImages(roomId, roomImages);
-          
+
           // Clean up image preview URLs
           imagePreviews.forEach(preview => URL.revokeObjectURL(preview));
-          
+
           if (uploadResults.length > 0) {
-            setMessage({ 
-              type: 'success', 
-              text: `✅ Room created with ${uploadResults.length} image(s) uploaded!` 
+            setMessage({
+              type: 'success',
+              text: `✅ Room created with ${uploadResults.length} image(s) uploaded!`
             });
           } else {
-            setMessage({ 
-              type: 'success', 
-              text: '✅ Room created successfully! (Image upload failed)' 
+            setMessage({
+              type: 'success',
+              text: '✅ Room created successfully! (Image upload failed)'
             });
           }
         } else {
-          setMessage({ 
-            type: 'success', 
-            text: '✅ Room created successfully!' 
+          setMessage({
+            type: 'success',
+            text: '✅ Room created successfully!'
           });
         }
 
-        // COMPLETELY RESET FORM
-        setCreateForm({
-          title: '',
-          description: '',
-          noOfBeds: 1,
-          roomSize: 0,
-          maxOccupancy: 1,
-          pricePerDay: 0,
-          timeForCheckout: 12,
-          location: {
-            latitude: ownerProfile.location?.latitude || 40.7128,
-            longitude: ownerProfile.location?.longitude || -74.0060,
-            country: '',
-            state: '',
-            city: ''
-          }
-        });
-        
-        // Reset location dropdowns
-        setSelectedCountry('');
-        setSelectedState('');
-        setSelectedCity('');
-        setStates([]);
-        setCities([]);
-        
-        // Reset image states
-        setRoomImages([]);
-        
-        // Clean up preview URLs
-        imagePreviews.forEach(preview => URL.revokeObjectURL(preview));
-        setImagePreviews([]);
-        
-        // Reset the file input
-        const fileInput = document.querySelector('input[type="file"]');
-        if (fileInput) {
-          fileInput.value = '';
-        }
-        
-        // Reset owner location toggle
-        setUseOwnerLocation(true);
-        
+        // FIXED: COMPLETELY RESET ALL FORM DATA
+        resetCreateForm();
+
         // Refresh rooms list
         fetchOwnerRooms();
-        
+
         // Switch to list tab after successful creation
         setTimeout(() => {
           setActiveTab('list');
         }, 2000);
-        
+
       } else {
         setMessage({ type: 'error', text: roomData.message || 'Failed to create room' });
       }
@@ -3595,6 +3570,53 @@ const OwnerRooms = () => {
     } finally {
       setLoading(false);
       setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    }
+  };
+
+  // FIXED: Reset create form function
+  const resetCreateForm = () => {
+    setCreateForm({
+      title: '',
+      description: '',
+      noOfBeds: 1,
+      roomSize: 0,
+      maxOccupancy: 1,
+      pricePerDay: 0,
+      timeForCheckout: 12,
+      location: {
+        latitude: ownerProfile.location?.latitude || 40.7128,
+        longitude: ownerProfile.location?.longitude || -74.0060,
+        country: '',
+        state: '',
+        city: ''
+      }
+    });
+
+    // Reset location dropdowns
+    setSelectedCountry('');
+    setSelectedState('');
+    setSelectedCity('');
+    setStates([]);
+    setCities([]);
+
+    // Reset image states
+    clearImages();
+
+    // Reset owner location toggle
+    setUseOwnerLocation(true);
+  };
+
+  // FIXED: Clear images helper
+  const clearImages = () => {
+    // Clean up preview URLs
+    imagePreviews.forEach(preview => URL.revokeObjectURL(preview));
+    setRoomImages([]);
+    setImagePreviews([]);
+
+    // Reset file input
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+      fileInput.value = '';
     }
   };
 
@@ -3620,17 +3642,17 @@ const OwnerRooms = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage({ 
-          type: 'success', 
-          text: '✅ Room updated successfully!' 
+        setMessage({
+          type: 'success',
+          text: '✅ Room updated successfully!'
         });
         setEditMode(false);
         setSelectedRoom(null);
-        fetchOwnerRooms(); 
+        fetchOwnerRooms();
       } else {
-        setMessage({ 
-          type: 'error', 
-          text: data.message || 'Failed to update room' 
+        setMessage({
+          type: 'error',
+          text: data.message || 'Failed to update room'
         });
       }
     } catch (error) {
@@ -3666,17 +3688,24 @@ const OwnerRooms = () => {
   // FIXED: Handle multiple image selection
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files);
-    
+
     // Validate file types (only images)
     const validFiles = files.filter(file => file.type.startsWith('image/'));
-    
+
     if (validFiles.length !== files.length) {
       setMessage({ type: 'error', text: 'Some files were skipped (only images allowed)' });
       setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     }
-    
+
+    // Limit to 10 images at once
+    if (roomImages.length + validFiles.length > 10) {
+      setMessage({ type: 'error', text: 'Maximum 10 images allowed' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      return;
+    }
+
     setRoomImages(prev => [...prev, ...validFiles]);
-    
+
     // Create previews
     const newPreviews = validFiles.map(file => URL.createObjectURL(file));
     setImagePreviews(prev => [...prev, ...newPreviews]);
@@ -3691,7 +3720,7 @@ const OwnerRooms = () => {
     });
   };
 
-  // UPLOAD SINGLE IMAGE - for existing rooms
+  // FIXED: UPLOAD SINGLE IMAGE - for existing rooms
   const uploadImage = async (e) => {
     e.preventDefault();
     if (!imageUpload.roomId || !imageUpload.image) {
@@ -3718,6 +3747,12 @@ const OwnerRooms = () => {
 
       if (response.ok) {
         setMessage({ type: 'success', text: '✅ Image uploaded successfully!' });
+
+        // Clean up preview
+        if (imageUpload.preview) {
+          URL.revokeObjectURL(imageUpload.preview);
+        }
+
         setImageUpload({ roomId: '', image: null, preview: null });
         fetchOwnerRooms();
       } else {
@@ -3801,9 +3836,9 @@ const OwnerRooms = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage({ 
-          type: 'success', 
-          text: `✅ Room marked as ${!currentStatus ? 'available' : 'unavailable'}` 
+        setMessage({
+          type: 'success',
+          text: `✅ Room marked as ${!currentStatus ? 'available' : 'unavailable'}`
         });
         fetchOwnerRooms();
         if (selectedRoom?._id === roomId) {
@@ -3862,8 +3897,8 @@ const OwnerRooms = () => {
         ...prev,
         location: {
           ...prev.location,
-          [locationField]: locationField === 'latitude' || locationField === 'longitude' 
-            ? parseFloat(value) || 0 
+          [locationField]: locationField === 'latitude' || locationField === 'longitude'
+            ? parseFloat(value) || 0
             : value
         }
       }));
@@ -3880,8 +3915,8 @@ const OwnerRooms = () => {
         ...prev,
         location: {
           ...prev.location,
-          [locationField]: locationField === 'latitude' || locationField === 'longitude' 
-            ? parseFloat(value) || 0 
+          [locationField]: locationField === 'latitude' || locationField === 'longitude'
+            ? parseFloat(value) || 0
             : value
         }
       }));
@@ -3893,6 +3928,11 @@ const OwnerRooms = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Clean up previous preview
+      if (imageUpload.preview) {
+        URL.revokeObjectURL(imageUpload.preview);
+      }
+
       setImageUpload({
         ...imageUpload,
         image: file,
@@ -3908,7 +3948,7 @@ const OwnerRooms = () => {
     setSelectedCity('');
     setStates([]);
     setCities([]);
-    
+
     setCreateForm(prev => ({
       ...prev,
       location: {
@@ -3918,7 +3958,7 @@ const OwnerRooms = () => {
         city: ''
       }
     }));
-    
+
     if (countryCode) {
       fetchStatesByCountry(countryCode);
     }
@@ -3929,7 +3969,7 @@ const OwnerRooms = () => {
     setSelectedState(stateCode);
     setSelectedCity('');
     setCities([]);
-    
+
     setCreateForm(prev => ({
       ...prev,
       location: {
@@ -3938,7 +3978,7 @@ const OwnerRooms = () => {
         city: ''
       }
     }));
-    
+
     if (selectedCountry && stateCode) {
       fetchCitiesByState(selectedCountry, stateCode);
     }
@@ -3947,7 +3987,7 @@ const OwnerRooms = () => {
   const handleCityChange = (e) => {
     const cityName = e.target.value;
     setSelectedCity(cityName);
-    
+
     setCreateForm(prev => ({
       ...prev,
       location: {
@@ -4013,11 +4053,10 @@ const OwnerRooms = () => {
 
       {/* Message */}
       {message.text && (
-        <div className={`mb-6 p-4 rounded-lg text-sm flex items-center gap-3 ${
-          message.type === 'success' 
-            ? 'bg-green-50 text-green-800 border border-green-200' 
+        <div className={`mb-6 p-4 rounded-lg text-sm flex items-center gap-3 ${message.type === 'success'
+            ? 'bg-green-50 text-green-800 border border-green-200'
             : 'bg-red-50 text-red-800 border border-red-200'
-        }`}>
+          }`}>
           <span className={`material-icons ${message.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
             {message.type === 'success' ? 'check_circle' : 'error'}
           </span>
@@ -4030,41 +4069,37 @@ const OwnerRooms = () => {
         <nav className="flex gap-6 min-w-max">
           <button
             onClick={() => setActiveTab('list')}
-            className={`pb-3 px-1 text-sm font-medium transition-colors ${
-              activeTab === 'list'
+            className={`pb-3 px-1 text-sm font-medium transition-colors ${activeTab === 'list'
                 ? 'text-blue-600 border-b-2 border-blue-600'
                 : 'text-slate-500 hover:text-slate-700'
-            }`}
+              }`}
           >
             My Rooms List ({rooms.length})
           </button>
           <button
             onClick={() => setActiveTab('create')}
-            className={`pb-3 px-1 text-sm font-medium transition-colors ${
-              activeTab === 'create'
+            className={`pb-3 px-1 text-sm font-medium transition-colors ${activeTab === 'create'
                 ? 'text-blue-600 border-b-2 border-blue-600'
                 : 'text-slate-500 hover:text-slate-700'
-            }`}
+              }`}
           >
             Create Room
           </button>
           <button
             onClick={() => setActiveTab('upload')}
-            className={`pb-3 px-1 text-sm font-medium transition-colors ${
-              activeTab === 'upload'
+            className={`pb-3 px-1 text-sm font-medium transition-colors ${activeTab === 'upload'
                 ? 'text-blue-600 border-b-2 border-blue-600'
                 : 'text-slate-500 hover:text-slate-700'
-            }`}
+              }`}
           >
             Upload Image
           </button>
           <button
             onClick={() => setActiveTab('search')}
-            className={`pb-3 px-1 text-sm font-medium transition-colors ${
-              activeTab === 'search'
+            className={`pb-3 px-1 text-sm font-medium transition-colors ${activeTab === 'search'
                 ? 'text-blue-600 border-b-2 border-blue-600'
                 : 'text-slate-500 hover:text-slate-700'
-            }`}
+              }`}
           >
             Search Rooms
           </button>
@@ -4084,7 +4119,7 @@ const OwnerRooms = () => {
               Refresh
             </button>
           </div>
-          
+
           {loading ? (
             <div className="flex justify-center py-12">
               <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
@@ -4105,17 +4140,17 @@ const OwnerRooms = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {rooms.map((room) => {
                 const reviews = roomReviews[room._id] || [];
-                const averageRating = reviews.length > 0 
+                const averageRating = reviews.length > 0
                   ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
                   : 0;
                 const loadingReview = loadingReviews[room._id];
-                
+
                 return (
                   <div key={room._id} className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
                     <div className="h-48 bg-slate-100 relative">
                       {room.images && room.images.length > 0 ? (
-                        <img 
-                          src={room.images[0]} 
+                        <img
+                          src={room.images[0]}
                           alt={room.title}
                           className="w-full h-full object-cover"
                         />
@@ -4125,11 +4160,10 @@ const OwnerRooms = () => {
                         </div>
                       )}
                       <div className="absolute top-2 right-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          room.isAvailable 
-                            ? 'bg-green-100 text-green-700' 
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${room.isAvailable
+                            ? 'bg-green-100 text-green-700'
                             : 'bg-amber-100 text-amber-700'
-                        }`}>
+                          }`}>
                           {room.isAvailable ? 'Available' : 'Booked'}
                         </span>
                       </div>
@@ -4137,7 +4171,7 @@ const OwnerRooms = () => {
                     <div className="p-4">
                       <h3 className="font-semibold text-slate-800 mb-1">{room.title}</h3>
                       <p className="text-sm text-slate-500 mb-2 line-clamp-2">{room.description}</p>
-                      
+
                       <div className="flex items-center gap-1 mb-2">
                         {loadingReview ? (
                           <div className="flex items-center gap-1">
@@ -4147,9 +4181,8 @@ const OwnerRooms = () => {
                           <>
                             <div className="flex">
                               {[1, 2, 3, 4, 5].map((star) => (
-                                <span key={star} className={`material-icons text-sm ${
-                                  star <= averageRating ? 'text-amber-400' : 'text-slate-300'
-                                }`}>
+                                <span key={star} className={`material-icons text-sm ${star <= averageRating ? 'text-amber-400' : 'text-slate-300'
+                                  }`}>
                                   star
                                 </span>
                               ))}
@@ -4202,11 +4235,10 @@ const OwnerRooms = () => {
                         </button>
                         <button
                           onClick={() => toggleAvailability(room._id, room.isAvailable)}
-                          className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                            room.isAvailable
+                          className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${room.isAvailable
                               ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
                               : 'bg-green-100 text-green-700 hover:bg-green-200'
-                          }`}
+                            }`}
                         >
                           {room.isAvailable ? 'Unavail' : 'Avail'}
                         </button>
@@ -4231,13 +4263,23 @@ const OwnerRooms = () => {
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-slate-800">Create New Room</h2>
-            <button
-              onClick={refreshOwnerLocation}
-              className="px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-1"
-            >
-              <span className="material-icons text-sm">refresh</span>
-              Refresh Owner Location
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={resetCreateForm}
+                className="px-3 py-1.5 text-sm bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors flex items-center gap-1"
+              >
+                <span className="material-icons text-sm">refresh</span>
+                Reset Form
+              </button>
+              <button
+                onClick={refreshOwnerLocation}
+                className="px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-1"
+              >
+                <span className="material-icons text-sm">refresh</span>
+                Refresh Owner Location
+              </button>
+            </div>
           </div>
 
           {/* Owner Location Info */}
@@ -4258,21 +4300,19 @@ const OwnerRooms = () => {
                   <button
                     type="button"
                     onClick={() => setUseOwnerLocation(!useOwnerLocation)}
-                    className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                      useOwnerLocation ? 'bg-blue-600' : 'bg-slate-300'
-                    }`}
+                    className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${useOwnerLocation ? 'bg-blue-600' : 'bg-slate-300'
+                      }`}
                   >
                     <span
-                      className={`${
-                        useOwnerLocation ? 'translate-x-4' : 'translate-x-0'
-                      } pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                      className={`${useOwnerLocation ? 'translate-x-4' : 'translate-x-0'
+                        } pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
                     />
                   </button>
                 </div>
               </div>
             </div>
           )}
-          
+
           <form onSubmit={createRoom} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -4381,7 +4421,7 @@ const OwnerRooms = () => {
             {/* Complete Location Section with Dropdowns */}
             <div className="border-t border-slate-200 pt-4">
               <h3 className="text-md font-semibold text-slate-700 mb-3">Location Details</h3>
-              
+
               <div className="mb-4">
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Country
@@ -4471,7 +4511,7 @@ const OwnerRooms = () => {
                   />
                 </div>
               </div>
-              
+
               {useOwnerLocation && ownerProfile.location && (
                 <p className="text-xs text-blue-600 mt-2">
                   Using your saved location. Toggle the switch above to edit manually.
@@ -4483,10 +4523,10 @@ const OwnerRooms = () => {
               )}
             </div>
 
-            {/* Image Upload Section */}
+            {/* FIXED: Image Upload Section - Multiple images */}
             <div className="border-t border-slate-200 pt-4">
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                Upload Room Images (Optional - You can upload multiple)
+                Upload Room Images (Optional - Max 10 images)
               </label>
               <div className="flex items-center gap-4">
                 <label className="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
@@ -4500,31 +4540,60 @@ const OwnerRooms = () => {
                     multiple
                     onChange={handleImageSelect}
                     className="hidden"
+                    disabled={roomImages.length >= 10}
                   />
                 </label>
                 <span className="text-xs text-slate-500">
-                  {roomImages.length} image(s) selected
+                  {roomImages.length} / 10 image(s) selected
                 </span>
+                {roomImages.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={clearImages}
+                    className="text-xs text-red-600 hover:text-red-800"
+                  >
+                    Clear all
+                  </button>
+                )}
               </div>
 
+              {/* Upload Progress */}
+              {uploadingImages && (
+                <div className="mt-2">
+                  <p className="text-xs text-blue-600">Uploading images...</p>
+                </div>
+              )}
+
+              {/* Image Previews */}
               {imagePreviews.length > 0 && (
                 <div className="mt-4">
                   <p className="text-sm text-slate-700 mb-2">Image Previews:</p>
                   <div className="flex flex-wrap gap-4">
                     {imagePreviews.map((preview, index) => (
                       <div key={index} className="relative">
-                        <img 
-                          src={preview} 
-                          alt={`Preview ${index + 1}`} 
+                        <img
+                          src={preview}
+                          alt={`Preview ${index + 1}`}
                           className="w-24 h-24 object-cover rounded-lg border border-slate-200"
                         />
                         <button
                           type="button"
                           onClick={() => removeImage(index)}
                           className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                          title="Remove image"
                         >
                           <span className="material-icons text-xs">close</span>
                         </button>
+                        {imageUploadProgress[index] === 100 && (
+                          <div className="absolute bottom-0 left-0 right-0 bg-green-500 text-white text-xs text-center py-0.5 rounded-b-lg">
+                            ✓
+                          </div>
+                        )}
+                        {imageUploadProgress[index] === -1 && (
+                          <div className="absolute bottom-0 left-0 right-0 bg-red-500 text-white text-xs text-center py-0.5 rounded-b-lg">
+                            ✗
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -4535,13 +4604,13 @@ const OwnerRooms = () => {
             <div className="pt-6 border-t border-slate-100">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || uploadingImages}
                 className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {loading ? (
+                {loading || uploadingImages ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Creating Room...
+                    {uploadingImages ? 'Uploading Images...' : 'Creating Room...'}
                   </>
                 ) : (
                   <>
@@ -4559,7 +4628,7 @@ const OwnerRooms = () => {
       {activeTab === 'upload' && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
           <h2 className="text-lg font-semibold text-slate-800 mb-4">Upload Additional Images</h2>
-          
+
           <form onSubmit={uploadImage} className="max-w-md space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -4574,7 +4643,7 @@ const OwnerRooms = () => {
                 <option value="">Choose a room...</option>
                 {rooms.map((room) => (
                   <option key={room._id} value={room._id}>
-                    {room.title}
+                    {room.title} ({room.images?.length || 0} images)
                   </option>
                 ))}
               </select>
@@ -4596,9 +4665,9 @@ const OwnerRooms = () => {
             {imageUpload.preview && (
               <div className="mt-4">
                 <p className="text-sm text-slate-700 mb-2">Preview:</p>
-                <img 
-                  src={imageUpload.preview} 
-                  alt="Preview" 
+                <img
+                  src={imageUpload.preview}
+                  alt="Preview"
                   className="w-full h-48 object-cover rounded-lg border border-slate-200"
                 />
               </div>
@@ -4621,7 +4690,7 @@ const OwnerRooms = () => {
       {activeTab === 'search' && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
           <h2 className="text-lg font-semibold text-slate-800 mb-4">Search Rooms</h2>
-          
+
           <div className="flex gap-4 mb-6">
             <div className="flex-1 relative">
               <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
@@ -4689,15 +4758,15 @@ const OwnerRooms = () => {
                 <span className="material-icons">close</span>
               </button>
             </div>
-            
+
             <div className="p-6">
               {selectedRoom.images && selectedRoom.images.length > 0 && (
                 <div className="mb-6">
                   <div className="grid grid-cols-2 gap-2">
                     {selectedRoom.images.map((img, index) => (
-                      <img 
+                      <img
                         key={index}
-                        src={img} 
+                        src={img}
                         alt={`${selectedRoom.title} ${index + 1}`}
                         className="w-full h-32 object-cover rounded-lg"
                       />
@@ -4705,7 +4774,7 @@ const OwnerRooms = () => {
                   </div>
                 </div>
               )}
-              
+
               <div className="space-y-4">
                 <div>
                   <h3 className="text-2xl font-bold text-slate-800">{selectedRoom.title}</h3>
@@ -4736,9 +4805,8 @@ const OwnerRooms = () => {
                           </div>
                           <div className="flex items-center gap-1 mt-1">
                             {[1, 2, 3, 4, 5].map((star) => (
-                              <span key={star} className={`material-icons text-xs ${
-                                star <= review.rating ? 'text-amber-400' : 'text-slate-300'
-                              }`}>
+                              <span key={star} className={`material-icons text-xs ${star <= review.rating ? 'text-amber-400' : 'text-slate-300'
+                                }`}>
                                 star
                               </span>
                             ))}
@@ -4761,11 +4829,10 @@ const OwnerRooms = () => {
                   </div>
                   <div>
                     <p className="text-xs text-slate-500">Status</p>
-                    <span className={`inline-block mt-1 px-2 py-1 rounded-full text-xs font-semibold ${
-                      selectedRoom.isAvailable 
-                        ? 'bg-green-100 text-green-700' 
+                    <span className={`inline-block mt-1 px-2 py-1 rounded-full text-xs font-semibold ${selectedRoom.isAvailable
+                        ? 'bg-green-100 text-green-700'
                         : 'bg-amber-100 text-amber-700'
-                    }`}>
+                      }`}>
                       {selectedRoom.isAvailable ? 'Available' : 'Booked'}
                     </span>
                   </div>
@@ -4807,11 +4874,10 @@ const OwnerRooms = () => {
                   </button>
                   <button
                     onClick={() => toggleAvailability(selectedRoom._id, selectedRoom.isAvailable)}
-                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      selectedRoom.isAvailable
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedRoom.isAvailable
                         ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
                         : 'bg-green-100 text-green-700 hover:bg-green-200'
-                    }`}
+                      }`}
                   >
                     {selectedRoom.isAvailable ? 'Mark Unavailable' : 'Mark Available'}
                   </button>
@@ -4855,7 +4921,7 @@ const OwnerRooms = () => {
                 <span className="material-icons">close</span>
               </button>
             </div>
-            
+
             <div className="p-6">
               <form onSubmit={updateRoom} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -4964,7 +5030,7 @@ const OwnerRooms = () => {
 
                 <div className="border-t border-slate-200 pt-4">
                   <h3 className="text-md font-semibold text-slate-700 mb-3">Location Details</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">

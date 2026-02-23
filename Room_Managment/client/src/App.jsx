@@ -65,6 +65,7 @@ import AllUsers from './Pages/Admin/AllUsers'
 import AllOwners from './Pages/Admin/AllOwners'
 import Dashboard from './Pages/Dashboard'
 import ForgotPassword from './Pages/Auth/ForgotPassword'
+import FAQ from './Pages/FAQ'
 
 function App() {
   return (
@@ -88,6 +89,7 @@ function App() {
             <Route path='/bookings' element={<Bookings />} />
             <Route path='/active-bookings' element={<ActiveBookings />} />
             <Route path='/history' element={<History />} />
+            <Route path='/faq' element={<FAQ />} />
 
             {/* Owner Routes */}
             <Route path='/owner/rooms' element={<OwnerRooms />} />
